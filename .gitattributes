@@ -1,0 +1,5 @@
+assets/branding/*.rgb binary
+assets/sprites/*.rgba binary
+assets/sprites/*.rle binary
+assets/generals/*.bgra binary
+assets/generals/expressions/*.bgra binary

@@ -1,0 +1,10 @@
+{
+  "name": "yyikusa",
+  "private": true,
+  "version": "0.1.0",
+  "description": "英雄の戦場 — 時代を超えた英雄たち（Rust → WebAssembly のブラウザ版）",
+  "scripts": {
+    "build": "bash build.sh",
+    "deploy": "bash build.sh && npx wrangler deploy"
+  }
+}

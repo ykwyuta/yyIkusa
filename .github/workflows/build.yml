@@ -1,0 +1,54 @@
+name: build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Test
+        run: cargo test --release --lib
+
+      - name: Build (WebAssembly)
+        run: bash build.sh
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: yyikusa-web
+          path: dist
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build
+        run: cargo build --release --locked --bin yyikusa-win
+
+      - name: Test
+        run: cargo test --release --locked --lib
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: yyikusa-windows
+          path: |
+            target/release/yyikusa-win.exe
+            target/release/yyikusa_win.pdb
+            README.md
