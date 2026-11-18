@@ -13,6 +13,23 @@ use crate::map::{center, idx, in_zone, tile_of, Field, FIELDS, MH, MW, TS};
 use crate::sim::{dist, EndReason, FxKind, Kind, Order, Phase, Target, Unit, World, CAPTURE_R, DECOY_REVEAL, HAWK_SIGHT, DT, TIME_LIMIT};
 use crate::Ev;
 
+struct DelegateStroke {
+    last: Option<(f32, f32)>,
+    targets: Vec<usize>,
+}
+
+// Segment distance catches units even when pointer events are sparse.
+fn segment_hits(p: (f32, f32), a: (f32, f32), b: (f32, f32), radius: f32) -> bool {
+    let delta = (b.0 - a.0, b.1 - a.1);
+    let length_sq = delta.0 * delta.0 + delta.1 * delta.1;
+    let t = if length_sq > 0.0 {
+        (((p.0 - a.0) * delta.0 + (p.1 - a.1) * delta.1) / length_sq).clamp(0.0, 1.0)
+    } else {
+        0.0
+    };
+    dist(p, (a.0 + t * delta.0, a.1 + t * delta.1)) < radius
+}
+
 type C = [f32; 4];
 
 const TEXT: C = [0.94, 0.91, 0.82, 1.0];
@@ -156,6 +173,7 @@ pub struct Game {
     zoom: f32,
     mouse: (f32, f32),
     ldown: Option<(f32, f32)>,
+    delegate_stroke: Option<DelegateStroke>,
     mdown: Option<((f32, f32), (f32, f32))>,
     painting: bool,
     sel: Vec<usize>,
@@ -238,6 +256,7 @@ impl Game {
             zoom: 0.5,
             mouse: (0.0, 0.0),
             ldown: None,
+            delegate_stroke: None,
             mdown: None,
             painting: false,
             sel: Vec::new(),
@@ -283,7 +302,7 @@ impl Game {
         None
     }
 
-    /// タッチした場所に何があるか：0=地図 1=画面部品 2=ミニマップ
+    /// タッチした場所に何があるか：0=地図 1=画面部品 2=ミニマップ 5=委任をなぞる地図
     #[cfg_attr(windows, allow(dead_code))]
     pub fn hit_kind(&self, x: f32, y: f32) -> u32 {
         let (x, y) = (x / self.gfx.ui, y / self.gfx.ui);
@@ -297,7 +316,7 @@ impl Game {
         if self.buttons.iter().any(|b| inr(&b.r)) || self.panels.iter().any(inr) {
             return 1;
         }
-        0
+        if self.show_generals { 5 } else { 0 }
     }
 
     fn field(&self) -> Field {
@@ -350,6 +369,7 @@ impl Game {
         self.show_generals = false;
         self.assign_to = Some(0);
         self.ldown = None;
+        self.delegate_stroke = None;
         self.screen = Screen::Battle;
         self.sel.clear();
         self.log.clear();
@@ -548,6 +568,7 @@ impl Game {
                 if self.ldown.is_some() && self.in_minimap((x, y)) && self.ldown.is_some_and(|d| self.in_minimap(d)) {
                     self.minimap_jump((x, y));
                 }
+                self.trace_delegation((x, y));
                 if self.painting && self.world.phase == Phase::Prep {
                     let p = self.to_world((x, y));
                     self.world.place_fences(0, p);
@@ -594,9 +615,9 @@ impl Game {
             }
             let wp = self.to_world(p);
             match self.world.phase {
-                Phase::Prep if self.show_generals => self.ldown = Some(p),
+                Phase::Prep if self.show_generals => self.start_delegation(p),
                 Phase::Prep => self.apply_tool(wp),
-                Phase::Battle if self.show_generals => self.ldown = Some(p),
+                Phase::Battle if self.show_generals => self.start_delegation(p),
                 Phase::Battle => {
                     if self.attack_mode && !self.sel.is_empty() {
                         self.command(wp, true);
@@ -643,6 +664,8 @@ impl Game {
             return;
         }
         self.painting = false;
+        self.trace_delegation(p);
+        let stroke = self.delegate_stroke.take();
         let Some(d) = self.ldown.take() else { return };
         if self.in_minimap(d) {
             return;
@@ -651,9 +674,12 @@ impl Game {
         if matches!(self.world.phase, Phase::Prep | Phase::Battle)
             && self.show_generals
             && !self.show_help
-            && !self.over_ui(p)
         {
-            self.delegate_at(self.to_world(d), self.to_world(p), drag);
+            if let Some(stroke) = stroke {
+                self.delegate_targets(stroke.targets);
+            } else if !self.over_ui(p) {
+                self.delegate_at(self.to_world(d), self.to_world(p), drag);
+            }
             return;
         }
         if self.world.phase != Phase::Battle {
@@ -769,6 +795,47 @@ impl Game {
             .collect()
     }
 
+    // Starting on a unit paints a path; starting on empty ground keeps mouse box selection.
+    fn start_delegation(&mut self, p: (f32, f32)) {
+        self.ldown = Some(p);
+        let wp = self.to_world(p);
+        let on_unit = self.world.units.iter().any(|u| {
+            u.alive && u.side == 0 && u.kind == Kind::Troop && dist(u.pos, wp) < TS * 0.70
+        });
+        self.delegate_stroke = (self.touch || on_unit).then_some(DelegateStroke {
+            last: Some(wp),
+            targets: Vec::new(),
+        });
+        self.trace_delegation(p);
+    }
+
+    fn trace_delegation(&mut self, p: (f32, f32)) {
+        if self.screen != Screen::Battle || !self.show_generals || self.show_help
+            || !matches!(self.world.phase, Phase::Prep | Phase::Battle)
+        {
+            return;
+        }
+        // Break the path at UI so returning to the map cannot select through a panel.
+        if self.over_ui(p) || self.in_minimap(p) {
+            if let Some(stroke) = &mut self.delegate_stroke {
+                stroke.last = None;
+            }
+            return;
+        }
+        let wp = self.to_world(p);
+        if let Some(stroke) = &mut self.delegate_stroke {
+            for (i, u) in self.world.units.iter().enumerate() {
+                if u.alive && u.side == 0 && u.kind == Kind::Troop
+                    && segment_hits(u.pos, stroke.last.unwrap_or(wp), wp, TS * 0.70)
+                    && !stroke.targets.contains(&i)
+                {
+                    stroke.targets.push(i);
+                }
+            }
+            stroke.last = Some(wp);
+        }
+    }
+
     fn delegate_at(&mut self, from: (f32, f32), to: (f32, f32), drag: bool) {
         let eligible = self.world.units.iter().enumerate().filter(|(_, u)| {
             u.alive && u.side == 0 && u.kind == Kind::Troop
@@ -788,6 +855,10 @@ impl Game {
                 .map(|(i, _)| vec![i])
                 .unwrap_or_default()
         };
+        self.delegate_targets(targets);
+    }
+
+    fn delegate_targets(&mut self, targets: Vec<usize>) {
         for i in targets {
             match self.world.phase {
                 Phase::Prep => {
@@ -950,6 +1021,7 @@ impl Game {
             Act::Generals if matches!(self.world.phase, Phase::Prep | Phase::Battle) => {
                 self.show_generals = !self.show_generals;
                 self.ldown = None;
+                self.delegate_stroke = None;
                 self.painting = false;
                 self.attack_mode = false;
                 if self.show_generals && self.world.phase == Phase::Battle {
@@ -1037,6 +1109,7 @@ impl Game {
                 }
                 self.show_generals = false;
                 self.ldown = None;
+                self.delegate_stroke = None;
                 generals::delegate_enemy(&mut self.world, self.seed);
                 self.world.start_battle();
                 self.act(Act::AllTroops);
@@ -1748,12 +1821,18 @@ impl Game {
         }
         // 範囲選択の枠
         if let Some(d) = self.ldown {
-            if !self.in_minimap(d) {
+            if !self.in_minimap(d) && self.delegate_stroke.is_none() {
                 let m = self.mouse;
                 if (m.0 - d.0).abs() > 8.0 || (m.1 - d.1).abs() > 8.0 {
                     self.gfx.fill_rect(d.0.min(m.0), d.1.min(m.1), d.0.max(m.0), d.1.max(m.1), [0.5, 1.0, 0.5, 0.12]);
                     self.gfx.stroke_rect(d.0.min(m.0), d.1.min(m.1), d.0.max(m.0), d.1.max(m.1), 1.0, [0.5, 1.0, 0.5, 0.9]);
                 }
+            }
+        }
+        if let Some(stroke) = &self.delegate_stroke {
+            for &i in &stroke.targets {
+                let p = self.to_screen(self.world.units[i].pos);
+                self.gfx.ring(p.0, p.1, TS * 0.70 * self.zoom, 2.0, 24, GOOD);
             }
         }
         // ミニマップの見出し
@@ -1882,16 +1961,10 @@ impl Game {
         let women=GENERALS.iter().filter(|g|g.gender==Gender::Female).count();
         let title=format!("{}  ♀{} / ♂{}",title,women,GENERALS.len()-women);
         self.gfx.text(&title, x, top + 8.0, inner, 23.0, Font::Big, GOLD);
-        let hint = if battle {
-            t!(
-                "指揮権を返還すると副官になり、直轄部隊を再び委任できます。",
-                "Return command to make a general an adjutant, then re-delegate troops anytime.",
-                "交还指挥权后将转为副官，可随时重新委任直属部队。"
-            )
-        } else if self.touch {
-            t!("将軍を選び、配置済みの部隊をタップ。", "Choose a general, then tap your deployed troops.", "选择将军后，点按已部署的部队。")
+        let hint = if self.touch {
+            t!("将軍を選び、部隊をなぞってまとめて委任。", "Choose a general, then trace units to assign them.", "选择将军后，滑过部队即可批量委任。")
         } else {
-            t!("将軍を選び、配置済みの部隊をクリック／範囲指定。", "Choose a general, then click or box-select deployed troops.", "选择将军后，点击或框选已部署的部队。")
+            t!("部隊からドラッグでなぞる／空白から範囲指定。", "Drag from a unit to trace; from empty ground to box-select.", "从部队拖动可涂选，从空白处拖动可框选。")
         };
         self.gfx.text(hint, x, top + 33.0, inner, 24.0, Font::Small, TEXT);
 
@@ -2428,6 +2501,23 @@ fn draw_hawk(g: &mut Gfx, u: &Unit, clock: f32) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn delegation_trace_catches_units_between_pointer_events() {
+        assert!(segment_hits((50.0, 2.0), (0.0, 0.0), (100.0, 0.0), 5.0));
+        assert!(segment_hits((50.0, 2.0), (100.0, 0.0), (0.0, 0.0), 5.0));
+        assert!(!segment_hits((110.0, 0.0), (0.0, 0.0), (100.0, 0.0), 5.0));
+        // A trace must not assign units elsewhere inside its bounding rectangle.
+        assert!(!segment_hits((10.0, 90.0), (0.0, 0.0), (100.0, 100.0), 5.0));
+    }
+
+    #[test]
+    fn delegation_trace_handles_taps_and_returning_to_start() {
+        assert!(segment_hits((12.0, 10.0), (10.0, 10.0), (10.0, 10.0), 5.0));
+        assert!(!segment_hits((30.0, 10.0), (10.0, 10.0), (10.0, 10.0), 5.0));
+        let path = [(0.0, 0.0), (100.0, 0.0), (0.0, 0.0)];
+        assert!(path.windows(2).any(|s| segment_hits((50.0, 0.0), s[0], s[1], 5.0)));
+    }
 
     #[test]
     fn ghost_units_exist_for_every_troop() {
