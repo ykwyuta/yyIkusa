@@ -8,6 +8,9 @@ use std::cmp::Reverse;
 
 pub const EXPRESSIONS: usize = 10;
 pub const EXPRESSION_SIZE: u32 = 96;
+const CELL_BYTES: usize = (EXPRESSION_SIZE * EXPRESSION_SIZE * 4) as usize;
+const EXPRESSION_ART: &[u8; GENERALS.len() * EXPRESSIONS * CELL_BYTES] =
+    include_bytes!("../assets/generals/expressions/expressions.bgra");
 const MAX_WAITING: usize = 12;
 
 // 左から右、上から下の順。肖像シートと台詞集で共通。
@@ -63,9 +66,35 @@ impl Report {
     }
 }
 
-pub fn expression_pixels(general: usize, _cue: Cue) -> Vec<u32> {
-    let p = crate::generals::portrait_pixels(general);
-    (0..96*96).map(|i| p[(i / 96 * 128 / 96) * 128 + (i % 96 * 128 / 96)]).collect()
+pub fn expression_pixels(general: usize, cue: Cue) -> Vec<u32> {
+    let start = (general * EXPRESSIONS + cue as usize) * CELL_BYTES;
+    EXPRESSION_ART[start..start + CELL_BYTES]
+        .chunks_exact(4)
+        .map(|p| u32::from_le_bytes([p[0], p[1], p[2], p[3]]))
+        .collect()
+}
+
+#[cfg(test)]
+mod portrait_asset_tests {
+    use super::*;
+
+    #[test]
+    fn every_general_has_ten_distinct_opaque_expressions() {
+        let cues = [Cue::Ready, Cue::Advance, Cue::Hold, Cue::Contact,
+            Cue::Danger, Cue::Support, Cue::Loss, Cue::Relief, Cue::Capture, Cue::Victory];
+        let mut seen_portraits = std::collections::HashSet::new();
+        for id in 0..GENERALS.len() {
+            let portrait = crate::generals::portrait_pixels(id);
+            assert!(seen_portraits.insert(portrait), "Duplicate general artwork at {id}");
+            let mut seen_expressions = std::collections::HashSet::new();
+            for cue in cues {
+                let pixels = expression_pixels(id, cue);
+                assert_eq!(pixels.len(), (EXPRESSION_SIZE * EXPRESSION_SIZE) as usize);
+                assert!(pixels.iter().all(|p| p >> 24 == 255), "Non-opaque portrait {id}");
+                assert!(seen_expressions.insert(pixels), "Duplicate expression for {id}");
+            }
+        }
+    }
 }
 
 #[derive(Clone, Copy, Default)]

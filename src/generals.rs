@@ -100,17 +100,16 @@ pub const GENERALS: [General; 20] = [
     General { names: ["ナポレオン", "Napoleon Bonaparte", "拿破仑"], gender: Gender::Male, strategy: Offensive },
 ];
 
-// Symbolic command standards, not historical portraits.
+// Generated 2D character portraits, ordered exactly like GENERALS.
 pub const PORTRAIT_SIZE: u32 = 128;
+const PORTRAIT_BYTES: usize = (PORTRAIT_SIZE * PORTRAIT_SIZE * 4) as usize;
+const PORTRAITS: &[u8; PORTRAIT_BYTES * GENERALS.len()] =
+    include_bytes!("../assets/generals/portraits.bgra");
 pub fn portrait_pixels(id: usize) -> Vec<u32> {
-    let colors = [0xff9b3845,0xff375ea1,0xff398c75,0xff508f41,0xffab6830,0xff7255a0,0xff9c833b,0xff3c7b91,0xff467359,0xff793d37];
-    (0..128*128).map(|i| {
-        let x = i % 128; let y = i / 128;
-        if x < 5 || x > 122 || y < 5 || y > 122 { 0xffd3b774 }
-        else if (x as i32-64).abs() + (y as i32-60).abs() < 32 {
-            if ((x / 8 + y / 8 + id) % 3) == 0 { 0xfff5e7bd } else { colors[id % colors.len()] }
-        } else { 0xff202c30 }
-    }).collect()
+    PORTRAITS[id * PORTRAIT_BYTES..(id + 1) * PORTRAIT_BYTES]
+        .chunks_exact(4)
+        .map(|p| u32::from_le_bytes([p[0], p[1], p[2], p[3]]))
+        .collect()
 }
 
 #[derive(Default)]
