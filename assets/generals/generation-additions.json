@@ -1,0 +1,69 @@
+{
+  "generator": "Built-in image_gen",
+  "purpose": "Redrawn artwork for the six parallel additions; roster registration is separate",
+  "grid": {
+    "columns": 5,
+    "rows": 2
+  },
+  "restrictions": [
+    "2D anime/cel illustration",
+    "No Japanese traditional painting, ukiyo-e, ink wash",
+    "No 3D, CGI, photo, oil painting or watercolor"
+  ],
+  "expression_order": [
+    "Ready",
+    "Advance",
+    "Hold",
+    "Contact",
+    "Danger",
+    "Support",
+    "Loss",
+    "Relief",
+    "Capture",
+    "Victory"
+  ],
+  "characters": [
+    {
+      "id": "fu_hao",
+      "name": "婦好",
+      "style": "polished modern historical action anime key art, expressive attractive adult face, crisp fine linework, rich digital cel shading with controlled highlights",
+      "prompt": "Use case: historical-scene. REPLACEMENT production character expression sheet for yyIkusa. EXACTLY 5 columns by 2 rows, ten equal square portrait panels, landscape canvas aspect 5:2.  SUBJECT: Fu Hao, adult Chinese woman commander of the Shang period, sharp confident dark eyes, long black hair in a practical high tied style with a simple bronze hairpin, bronze lamellar breast and shoulder protection over dark teal and russet robes, clearly Chinese historical warrior design, no Japanese kimono or hair ornaments. STYLE: polished modern historical action anime key art, expressive attractive adult face, crisp fine linework, rich digital cel shading with controlled highlights. Draw the SAME consistent recognizable adult character in all ten cells, head and shoulders, face large and readable at 96px, whole head safely contained in each cell, consistent scale and costume, 8 percent safe inset. Muted blue-gray background constant throughout. EXACT row-major expressions: calm ready; spirited advance command with open mouth; attentive waiting; alert at enemy contact; worried under concentrated attack; urgent request for reinforcements with open mouth; grieving losses; warm relieved smile; determined securing objective; joyful victory smile. Expressions visibly different, natural anatomy and attractive expressive eyes. FINISHED ANIME GAME ART, clearly illustrated TWO-DIMENSIONAL cel shading. NO traditional Japanese painting, NO ukiyo-e, NO nihonga, NO ink wash, NO parchment or paper texture, NO Western oil painting, NO watercolor, NO photorealism, NO 3D, NO CGI, NO plastic or doll look. No text, numbers, names, captions, borders, watermarks, modern equipment, sexualized costumes or exposed cleavage. No extra characters. EXACTLY ten equally sized cells in regular 5x2 arrangement; never merge panels.",
+      "original_file": "exec-a93fbd40-825c-4c8d-a2f8-f42cb0d2c31e.png"
+    },
+    {
+      "id": "tachibana_ginchiyo",
+      "name": "立花誾千代",
+      "style": "premium contemporary anime game illustration, graceful sharp line art, clean saturated violet and crimson cel shading, charismatic strong adult heroine",
+      "prompt": "Use case: historical-scene. REPLACEMENT production character expression sheet for yyIkusa. EXACTLY 5 columns by 2 rows, ten equal square portrait panels, landscape canvas aspect 5:2.  SUBJECT: Tachibana Ginchiyo, adult Japanese woman warrior, long black hair in a practical ponytail tied with a crimson cord, indigo and deep violet Sengoku lamellar armor with small gold accents over ivory underclothes, fierce focused dark eyes, no helmet obscuring face. STYLE: premium contemporary anime game illustration, graceful sharp line art, clean saturated violet and crimson cel shading, charismatic strong adult heroine. Draw the SAME consistent recognizable adult character in all ten cells, head and shoulders, face large and readable at 96px, whole head safely contained in each cell, consistent scale and costume, 8 percent safe inset. Muted blue-gray background constant throughout. EXACT row-major expressions: calm ready; spirited advance command with open mouth; attentive waiting; alert at enemy contact; worried under concentrated attack; urgent request for reinforcements with open mouth; grieving losses; warm relieved smile; determined securing objective; joyful victory smile. Expressions visibly different, natural anatomy and attractive expressive eyes. FINISHED ANIME GAME ART, clearly illustrated TWO-DIMENSIONAL cel shading. NO traditional Japanese painting, NO ukiyo-e, NO nihonga, NO ink wash, NO parchment or paper texture, NO Western oil painting, NO watercolor, NO photorealism, NO 3D, NO CGI, NO plastic or doll look. No text, numbers, names, captions, borders, watermarks, modern equipment, sexualized costumes or exposed cleavage. No extra characters. EXACTLY ten equally sized cells in regular 5x2 arrangement; never merge panels.",
+      "original_file": "exec-3aa09e1c-f24f-4662-a19a-67f64995e7db.png"
+    },
+    {
+      "id": "nzinga",
+      "name": "ンジンガ",
+      "style": "modern 2D animated adventure character art, beautifully drawn expressive adult face, bold elegant contours, rich saturated flat cel colors and graphic shadows, no caricature",
+      "prompt": "Use case: historical-scene. REPLACEMENT production character expression sheet for yyIkusa. EXACTLY 5 columns by 2 rows, ten equal square portrait panels, landscape canvas aspect 5:2.  SUBJECT: Queen Nzinga, dignified adult Black African Angolan warrior queen, deep brown skin, expressive dark eyes, black hair in close braids with a restrained golden headband, crimson and emerald woven royal cloak with bronze shoulder protection and a few small gold ornaments, mature confident features. STYLE: modern 2D animated adventure character art, beautifully drawn expressive adult face, bold elegant contours, rich saturated flat cel colors and graphic shadows, no caricature. Draw the SAME consistent recognizable adult character in all ten cells, head and shoulders, face large and readable at 96px, whole head safely contained in each cell, consistent scale and costume, 8 percent safe inset. Muted blue-gray background constant throughout. EXACT row-major expressions: calm ready; spirited advance command with open mouth; attentive waiting; alert at enemy contact; worried under concentrated attack; urgent request for reinforcements with open mouth; grieving losses; warm relieved smile; determined securing objective; joyful victory smile. Expressions visibly different, natural anatomy and attractive expressive eyes. FINISHED ANIME GAME ART, clearly illustrated TWO-DIMENSIONAL cel shading. NO traditional Japanese painting, NO ukiyo-e, NO nihonga, NO ink wash, NO parchment or paper texture, NO Western oil painting, NO watercolor, NO photorealism, NO 3D, NO CGI, NO plastic or doll look. No text, numbers, names, captions, borders, watermarks, modern equipment, sexualized costumes or exposed cleavage. No extra characters. EXACTLY ten equally sized cells in regular 5x2 arrangement; never merge panels.",
+      "original_file": "exec-0f2ff3eb-91b6-4482-ae6e-e5ec45ebb112.png"
+    },
+    {
+      "id": "penthesilea",
+      "name": "ペンテシレイア",
+      "style": "contemporary action anime heroine illustration, confident dynamic linework, sharp stylized adult features, warm copper and crimson cel shading",
+      "prompt": "Use case: historical-scene. REPLACEMENT production character expression sheet for yyIkusa. EXACTLY 5 columns by 2 rows, ten equal square portrait panels, landscape canvas aspect 5:2.  SUBJECT: Penthesilea, adult legendary Amazon queen inspired by ancient Greek armor, athletic face, long dark auburn hair tied back, bronze cuirass covering chest and shoulders over a dark red garment, deep crimson cloak, no helmet covering face, resolute expressive eyes. STYLE: contemporary action anime heroine illustration, confident dynamic linework, sharp stylized adult features, warm copper and crimson cel shading. Draw the SAME consistent recognizable adult character in all ten cells, head and shoulders, face large and readable at 96px, whole head safely contained in each cell, consistent scale and costume, 8 percent safe inset. Muted blue-gray background constant throughout. EXACT row-major expressions: calm ready; spirited advance command with open mouth; attentive waiting; alert at enemy contact; worried under concentrated attack; urgent request for reinforcements with open mouth; grieving losses; warm relieved smile; determined securing objective; joyful victory smile. Expressions visibly different, natural anatomy and attractive expressive eyes. FINISHED ANIME GAME ART, clearly illustrated TWO-DIMENSIONAL cel shading. NO traditional Japanese painting, NO ukiyo-e, NO nihonga, NO ink wash, NO parchment or paper texture, NO Western oil painting, NO watercolor, NO photorealism, NO 3D, NO CGI, NO plastic or doll look. No text, numbers, names, captions, borders, watermarks, modern equipment, sexualized costumes or exposed cleavage. No extra characters. EXACTLY ten equally sized cells in regular 5x2 arrangement; never merge panels.",
+      "original_file": "exec-42b273f7-23e4-4fee-a112-a3c83f9edfe7.png"
+    },
+    {
+      "id": "uesugi_kenshin",
+      "name": "上杉謙信",
+      "style": "modern full-color seinen anime and manga game portrait, precise assertive ink contours, expressive eyes, strong flat cel shadows, handsome mature adult face",
+      "prompt": "Use case: historical-scene. REPLACEMENT production character expression sheet for yyIkusa. EXACTLY 5 columns by 2 rows, ten equal square portrait panels, landscape canvas aspect 5:2.  SUBJECT: Uesugi Kenshin, mature adult Japanese male samurai commander, calm narrow dark eyes, strong drawn face with a small neat moustache, recognizable plain ivory warrior monk hood framing entire face, dark navy and black Sengoku lamellar armor with restrained gold accents. STYLE: modern full-color seinen anime and manga game portrait, precise assertive ink contours, expressive eyes, strong flat cel shadows, handsome mature adult face. Draw the SAME consistent recognizable adult character in all ten cells, head and shoulders, face large and readable at 96px, whole head safely contained in each cell, consistent scale and costume, 8 percent safe inset. Muted blue-gray background constant throughout. EXACT row-major expressions: calm ready; spirited advance command with open mouth; attentive waiting; alert at enemy contact; worried under concentrated attack; urgent request for reinforcements with open mouth; grieving losses; warm relieved smile; determined securing objective; joyful victory smile. Expressions visibly different, natural anatomy and attractive expressive eyes. FINISHED ANIME GAME ART, clearly illustrated TWO-DIMENSIONAL cel shading. NO traditional Japanese painting, NO ukiyo-e, NO nihonga, NO ink wash, NO parchment or paper texture, NO Western oil painting, NO watercolor, NO photorealism, NO 3D, NO CGI, NO plastic or doll look. No text, numbers, names, captions, borders, watermarks, modern equipment, sexualized costumes or exposed cleavage. No extra characters. EXACTLY ten equally sized cells in regular 5x2 arrangement; never merge panels.",
+      "original_file": "exec-ca7dfd2c-f4dd-4e23-bc04-04cd280e1ccc.png"
+    },
+    {
+      "id": "cleopatra",
+      "name": "クレオパトラ",
+      "style": "polished modern anime strategy-game character portrait, exquisite fine line art, expressive appealing adult face, luminous clean turquoise gold and ivory cel colors, visibly drawn 2D",
+      "prompt": "Use case: historical-scene. REPLACEMENT production character expression sheet for yyIkusa. EXACTLY 5 columns by 2 rows, ten equal square portrait panels, landscape canvas aspect 5:2.  SUBJECT: Cleopatra VII, adult Ptolemaic Egyptian queen, olive complexion, dark expressive almond eyes, sleek black braided bob, modest golden uraeus diadem, ivory royal robe covering chest and shoulders and a turquoise-and-gold broad collar, regal intelligent confident demeanor. STYLE: polished modern anime strategy-game character portrait, exquisite fine line art, expressive appealing adult face, luminous clean turquoise gold and ivory cel colors, visibly drawn 2D. Draw the SAME consistent recognizable adult character in all ten cells, head and shoulders, face large and readable at 96px, whole head safely contained in each cell, consistent scale and costume, 8 percent safe inset. Muted blue-gray background constant throughout. EXACT row-major expressions: calm ready; spirited advance command with open mouth; attentive waiting; alert at enemy contact; worried under concentrated attack; urgent request for reinforcements with open mouth; grieving losses; warm relieved smile; determined securing objective; joyful victory smile. Expressions visibly different, natural anatomy and attractive expressive eyes. FINISHED ANIME GAME ART, clearly illustrated TWO-DIMENSIONAL cel shading. NO traditional Japanese painting, NO ukiyo-e, NO nihonga, NO ink wash, NO parchment or paper texture, NO Western oil painting, NO watercolor, NO photorealism, NO 3D, NO CGI, NO plastic or doll look. No text, numbers, names, captions, borders, watermarks, modern equipment, sexualized costumes or exposed cleavage. No extra characters. EXACTLY ten equally sized cells in regular 5x2 arrangement; never merge panels.",
+      "original_file": "exec-76f6e035-49ee-4451-9d4f-536466c58662.png"
+    }
+  ]
+}
