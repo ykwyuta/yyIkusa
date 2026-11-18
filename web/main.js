@@ -694,7 +694,11 @@ function bindInput() {
       const kind = wasm.yy_hit(x, y);
       one = { id: e.pointerId, x0: x, y0: y, x, y, kind, mode: 'pending' };
       wasm.yy_event(0, x, y, 0);
-      if (kind === 2) {
+      if (kind === 5) {
+        // 将軍への委任：長押しを待たず、なぞった部隊をまとめる。
+        one.mode = 'left';
+        wasm.yy_event(1, 0, x, y);
+      } else if (kind === 2) {
         // ミニマップ：押した場所へすぐ動かす
         one.mode = 'left';
         wasm.yy_event(1, 0, x, y);
