@@ -56,6 +56,8 @@ YYww2の予算制・準備配置・リアルタイム戦闘・将軍への指揮
 
 ## 操作
 
+全部隊の移動に方向別の歩行差分を使用する。歩兵・鉄砲隊・弓隊は脚を交互に動かし、騎兵と象兵も足運びを変える。大砲は砲兵が歩いて押す。実際の進行方向に合わせた8方向表示で、移動距離に応じて4コマを切り替え、止まると待機姿勢へ戻る。[方向・歩行の確認資料](assets/units/README.md) を参照。
+
 左クリック／ドラッグで選択、右クリックで移動／攻撃。Aで攻撃移動、Sで停止、Qで直轄部隊を選択、Dで鷹を選択、Pで鷹の自動巡回、Gで将軍パネル。Spaceで一時停止、＋／－で速度変更、F1またはHでヘルプ。矢印・画面端・中ドラッグで地図移動、ホイールで拡大縮小。タッチ操作も継承する。
 
 ## 起動・確認
@@ -75,4 +77,4 @@ Cloudflare設定名は `yyikusa`。公開する場合は `npm run deploy` を実
 
 アプリアイコンとタイトル背景はyyIkusa専用の2Dイラスト。鷹・剣・軍旗の紋章をWindows実行ファイル、favicon、Webアプリ、ホーム画面で共用する。タイトル画面は専用キービジュアル、濃紺・金・朱赤の操作パネル、漂う火の粉で構成する。生成プロンプトと再梱包方法は [assets/branding/README.md](assets/branding/README.md) を参照。
 
-[yyMongolia](https://github.com/ykwyuta/yyMongolia) の象兵・歩兵・弓兵・騎兵・建築を流用。由来と再生成方法は [assets/mongolia/README.md](assets/mongolia/README.md) を参照。鉄砲隊と騎馬鉄砲隊は人物・馬の素材にコード描画の銃を組み合わせ、大砲・柵・鷹はコードで描画する。将軍の肖像・表情イラストはyyIkusa専用。兵種アニメーションは未制作。
+[yyMongolia](https://github.com/ykwyuta/yyMongolia) の本陣建築などを流用。由来と再生成方法は [assets/mongolia/README.md](assets/mongolia/README.md) を参照。8兵種の方向・歩行差分と将軍イラストはyyIkusa専用に生成し、柵・鷹はコードで描画する。武器と砲兵も兵種の原画に含む。

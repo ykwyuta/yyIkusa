@@ -1351,7 +1351,6 @@ impl Game {
                 if atlas.is_none() {
                     draw_troop_fallback(g, u, alpha);
                 }
-                if atlas.is_some() { draw_equipment(g, u, alpha); }
                 if !u.alive {
                     draw_wreck_fx(g, u, clock);
                 }
@@ -2252,10 +2251,8 @@ fn quad(g: &mut Gfx, c: (f32, f32), a: f32, off: f32, hl: f32, hw: f32, col: C) 
 }
 
 const OBLIQUE_ATLAS_RLE: &[u8] = include_bytes!("../assets/sprites/oblique_atlas.rle");
-const ATLAS_COLS: usize = 8;
-const ATLAS_ROWS: usize = 2;
-#[cfg(test)]
-const VEHICLE_COUNT: usize = 8;
+const ATLAS_COLS: usize = crate::unit_animation::ATLAS_COLS;
+const ATLAS_ROWS: usize = crate::unit_animation::ATLAS_ROWS;
 const CELL_DECOY: usize = 8;
 const CELL_DECOY_WRECK: usize = 9;
 const CELL_HQ: usize = 12;
@@ -2305,15 +2302,11 @@ fn decode_atlas_rle(data: &[u8]) -> Option<(u32, u32, Vec<u32>)> {
     if px.len() == total { Some((w, h, px)) } else { None }
 }
 
-fn vehicle_cell(u: &Unit) -> usize {
-    u.ti.min(7)
-}
-
 fn unit_oblique_cell(u: &Unit) -> usize {
     if u.kind == Kind::Decoy && (u.side == 0 || u.revealed) {
         CELL_DECOY
     } else {
-        vehicle_cell(u)
+        crate::unit_animation::pose(u).0
     }
 }
 
@@ -2322,8 +2315,7 @@ fn unit_oblique_radius(s: &TroopSpec) -> f32 {
 }
 
 fn unit_flip_x(u: &Unit) -> bool {
-    let dir = if u.spec().turret && matches!(u.order, Order::Attack(_)) { u.turret } else { u.hull };
-    dir.cos() < -0.05
+    crate::unit_animation::pose(u).1
 }
 
 fn push_troop_sprites(g: &mut Gfx, u: &Unit, alpha: f32) {
@@ -2340,7 +2332,6 @@ fn draw_troop_with_atlas(g: &mut Gfx, atlas: Option<&Texture>, u: &Unit, alpha: 
         g.begin_sprites();
         push_troop_sprites(g, u, alpha);
         g.end_sprites(at, true);
-        draw_equipment(g, u, alpha);
     } else {
         draw_troop_fallback(g, u, alpha);
     }
@@ -2443,7 +2434,8 @@ mod tests {
         for (n, i) in crate::data::all_troops() {
             let u = ghost_unit(n, i, (100.0, 100.0));
             assert_eq!(u.spec().name, n.troops()[i].name);
-            assert!(vehicle_cell(&u) < VEHICLE_COUNT);
+            let cell=unit_oblique_cell(&u);
+            assert!((crate::unit_animation::MOTION_START..crate::unit_animation::MOTION_START+200).contains(&cell));
         }
     }
 
@@ -2454,5 +2446,25 @@ mod tests {
         assert_eq!(h, (ATLAS_ROWS * 128) as u32);
         assert_eq!(px.len(), (w * h) as usize);
         assert!(px.iter().any(|&p| p != 0));
+    }
+
+    #[test]
+    fn every_directional_walk_cell_contains_unique_transparent_artwork() {
+        use std::hash::{Hash,Hasher};
+        let (width,_,pixels)=decode_atlas_rle(OBLIQUE_ATLAS_RLE).unwrap();
+        let mut hashes=std::collections::HashSet::new();
+        for cell in crate::unit_animation::MOTION_START..crate::unit_animation::MOTION_START+200 {
+            let (x,y)=((cell%ATLAS_COLS)*128,(cell/ATLAS_COLS)*128);
+            let mut sprite=Vec::with_capacity(128*128);
+            for row in 0..128 {
+                let start=(y+row)*width as usize+x;
+                sprite.extend_from_slice(&pixels[start..start+128]);
+            }
+            assert!(sprite.iter().any(|p|p>>24==0), "Missing alpha at cell {cell}");
+            assert!(sprite.iter().any(|p|p>>24>200), "Empty sprite at cell {cell}");
+            let mut hash=std::collections::hash_map::DefaultHasher::new();
+            sprite.hash(&mut hash);
+            assert!(hashes.insert(hash.finish()), "Duplicate motion artwork at cell {cell}");
+        }
     }
 }

@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>yyIkusa — 歩行と8方向の確認</title>
+<style>
+body{margin:0;background:#14232c;color:#eee6d3;font:15px system-ui,sans-serif}main{max-width:1100px;margin:auto;padding:24px}h1{font-size:24px;color:#e8c77c}header{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin-bottom:20px}button,select{background:#29434f;color:inherit;border:1px solid #8f805f;padding:8px;border-radius:4px}.table{overflow:auto}.grid{display:grid;grid-template-columns:96px repeat(8,120px);gap:2px;width:max-content}.label{padding:12px 4px;text-align:center}.sprite{width:120px;height:120px;background-repeat:no-repeat;background-size:500% 500%;background-position-x:0%;image-rendering:auto}.moving .sprite{animation:walk var(--duration,.8s) steps(1,end) infinite}.cell{background:#20343d}.flip{transform:scaleX(-1)}@keyframes walk{0%{background-position-x:25%}25%{background-position-x:50%}50%{background-position-x:75%}75%,100%{background-position-x:100%}}
+</style><main><h1>yyIkusa — 歩行差分と8方向</h1>
+<header><button id="toggle">停止する</button><label>歩行周期 <input id="speed" type="range" min=".4" max="2" step=".1" value=".8"> <output id="value">0.8秒</output></label><span>左から東→時計回り。上へ向く部隊は背面。</span></header>
+<div class="table"><div class="grid moving" id="grid"></div></div></main>
+<script>
+const units=[['war_elephant','象兵'],['infantry','歩兵'],['musketeer','鉄砲隊'],['cannon','大砲'],['lancer_cavalry','騎馬槍隊'],['mounted_musketeer','騎馬鉄砲隊'],['horse_archer','騎馬弓隊'],['archer','弓隊']];
+const directions=[['東 →',0,false],['南東 ↘',1,false],['南 ↓',2,false],['南西 ↙',1,true],['西 ←',0,true],['北西 ↖',3,true],['北 ↑',4,false],['北東 ↗',3,false]];
+const grid=document.querySelector('#grid');
+function label(text){const e=document.createElement('div');e.className='label';e.textContent=text;grid.append(e)}
+label('兵種');for(const [name]of directions)label(name);
+for(const [id,name]of units){label(name);for(const [,row,flip]of directions){const cell=document.createElement('div');cell.className='cell';const sprite=document.createElement('div');sprite.className='sprite'+(flip?' flip':'');sprite.style.backgroundImage=`url(movement/${id}.png)`;sprite.style.backgroundPositionY=`${row*25}%`;cell.append(sprite);grid.append(cell)}}
+document.querySelector('#toggle').onclick=e=>{const moving=grid.classList.toggle('moving');e.target.textContent=moving?'停止する':'歩かせる'};
+document.querySelector('#speed').oninput=e=>{grid.style.setProperty('--duration',e.target.value+'s');document.querySelector('#value').textContent=e.target.value+'秒'};
+</script></html>

@@ -18,6 +18,7 @@ mod generals;
 mod map;
 mod rng;
 mod sim;
+mod unit_animation;
 
 #[cfg(not(windows))]
 mod gfx;

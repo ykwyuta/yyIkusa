@@ -70,6 +70,9 @@ pub struct Unit {
     pub target: Option<Target>,
     pub scan: f32,
     pub moving: bool,
+    /// Actual displacement heading and cumulative distance, for directional walk sprites.
+    pub motion_heading: f32,
+    pub walk_distance: f32,
     /// 最後に撃ってからの秒数
     pub fired: f32,
     /// デコイが相手に見破られたか
@@ -82,6 +85,15 @@ pub struct Unit {
 }
 
 impl Unit {
+    fn record_motion(&mut self, previous: (f32,f32)) {
+        if self.kind != Kind::Troop || !self.alive || !self.moving { return; }
+        let dx=self.pos.0-previous.0;
+        let dy=self.pos.1-previous.1;
+        let distance=dx.hypot(dy);
+        if distance <= 0.0001 { self.moving=false; return; }
+        self.motion_heading=dy.atan2(dx);
+        self.walk_distance=(self.walk_distance+distance/TS).rem_euclid(4096.0);
+    }
     pub(crate) fn armor_toward(&self, from: (f32, f32)) -> f32 {
         let a = (from.1 - self.pos.1).atan2(from.0 - self.pos.0);
         let rel = angle_diff(a, self.hull).abs();
@@ -318,6 +330,8 @@ impl World {
             target: None,
             scan: 0.0,
             moving: false,
+            motion_heading: face,
+            walk_distance: 0.0,
             fired: 99.0,
             revealed: false,
             dead_t: 0.0,
@@ -551,7 +565,9 @@ impl World {
             self.update_vis();
         }
         for i in 0..self.units.len() {
+            let previous=self.units[i].pos;
             self.update_unit(i);
+            self.units[i].record_motion(previous);
         }
         self.separate();
         self.update_shells();
@@ -1285,6 +1301,23 @@ mod tests {
         w.units[0].ti = 2;
         w.fire(0,Target::Unit(1));
         assert!(w.fx.iter().any(|f|f.kind==FxKind::Flash));
+    }
+
+    #[test]
+    fn walk_distance_and_heading_follow_displacement_without_idle_foot_sliding() {
+        let mut unit=World::new_unit(0,Kind::Troop,Nation::Roster,1,(0.0,0.0));
+        unit.moving=true;
+        unit.pos=(TS,TS);
+        unit.record_motion((0.0,0.0));
+        assert!((unit.motion_heading-std::f32::consts::FRAC_PI_4).abs()<0.0001);
+        assert!((unit.walk_distance-2.0_f32.sqrt()).abs()<0.0001);
+        let distance=unit.walk_distance;
+        unit.record_motion(unit.pos);
+        assert!(!unit.moving);
+        assert_eq!(unit.walk_distance,distance);
+        unit.moving=true;unit.kind=Kind::Decoy;
+        unit.record_motion((0.0,0.0));
+        assert_eq!(unit.walk_distance,distance);
     }
 
     #[test]
