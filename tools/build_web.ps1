@@ -4,7 +4,7 @@ try {
     cargo build --locked --release --lib --target wasm32-unknown-unknown --config profile.release.debug=false
     if ($LASTEXITCODE -ne 0) { throw 'WebAssembly build failed' }
     New-Item -ItemType Directory -Path dist -Force | Out-Null
-    foreach ($name in @('index.html','main.js','browser-recovery.js','manifest.webmanifest','ikusa-192.png','ikusa-512.png','ikusa-apple.png')) {
+    foreach ($name in @('index.html','main.js','browser-recovery.js','manifest.webmanifest','ikusa-192.png','ikusa-512.png','ikusa-apple.png','ikusa-cover.jpg')) {
         Copy-Item -LiteralPath (Join-Path web $name) -Destination dist -Force
     }
     Copy-Item -LiteralPath assets/branding/ikusa.ico -Destination dist/favicon.ico -Force

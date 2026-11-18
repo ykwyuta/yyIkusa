@@ -47,15 +47,5 @@ for n,tile in enumerate(tiles):
         off=((n//8*SIZE+y)*1024+n%8*SIZE)*4
         atlas[off:off+SIZE*4]=tile[y*SIZE*4:(y+1)*SIZE*4]
 (R/'assets/sprites/oblique_atlas.rle').write_bytes(encode(atlas,1024,256))
-# A plain period-art title background, with the title rendered by the UI.
-title=bytearray(bytes((13,23,27))*1280*720)
-for n in range(8):
-    tile=tiles[n]
-    ox=160+n*120; oy=430
-    for y in range(128):
-        for x in range(128):
-            i=(y*128+x)*4; r,g,b,a=tile[i:i+4]
-            j=((oy+y)*1280+ox+x)*3
-            title[j:j+3]=bytes(((r*a+13*(255-a))//255,(g*a+23*(255-a))//255,(b*a+27*(255-a))//255))
-(R/'assets/branding/title.rgb').write_bytes(title)
+# Dedicated title artwork is packed separately by tools/pack_brand.ps1.
 print('Packed 8 troop cells and period headquarters.')

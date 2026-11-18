@@ -20,7 +20,7 @@ cargo build --locked --release --lib --target wasm32-unknown-unknown --config pr
 
 rm -rf dist
 mkdir -p dist
-cp web/index.html web/main.js web/browser-recovery.js web/manifest.webmanifest web/ikusa-192.png web/ikusa-512.png web/ikusa-apple.png dist/
+cp web/index.html web/main.js web/browser-recovery.js web/manifest.webmanifest web/ikusa-192.png web/ikusa-512.png web/ikusa-apple.png web/ikusa-cover.jpg dist/
 cp assets/branding/ikusa.ico dist/favicon.ico
 cp target/wasm32-unknown-unknown/release/yyikusa.wasm dist/
 # wasm-opt があればさらに小さくする（任意）

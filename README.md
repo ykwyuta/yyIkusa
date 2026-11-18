@@ -73,4 +73,6 @@ Cloudflare設定名は `yyikusa`。公開する場合は `npm run deploy` を実
 
 ## アセット
 
-[yyMongolia](https://github.com/ykwyuta/yyMongolia) の象兵・歩兵・弓兵・騎兵・建築・アプリアイコンを流用。由来と再生成方法は [assets/mongolia/README.md](assets/mongolia/README.md) を参照。鉄砲隊と騎馬鉄砲隊は人物・馬の素材にコード描画の銃を組み合わせ、大砲・柵・鷹はコードで描画する。将軍の肖像・表情イラストはyyIkusa専用。兵種アニメーションは未制作。
+アプリアイコンとタイトル背景はyyIkusa専用の2Dイラスト。鷹・剣・軍旗の紋章をWindows実行ファイル、favicon、Webアプリ、ホーム画面で共用する。タイトル画面は専用キービジュアル、濃紺・金・朱赤の操作パネル、漂う火の粉で構成する。生成プロンプトと再梱包方法は [assets/branding/README.md](assets/branding/README.md) を参照。
+
+[yyMongolia](https://github.com/ykwyuta/yyMongolia) の象兵・歩兵・弓兵・騎兵・建築を流用。由来と再生成方法は [assets/mongolia/README.md](assets/mongolia/README.md) を参照。鉄砲隊と騎馬鉄砲隊は人物・馬の素材にコード描画の銃を組み合わせ、大砲・柵・鷹はコードで描画する。将軍の肖像・表情イラストはyyIkusa専用。兵種アニメーションは未制作。

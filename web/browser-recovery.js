@@ -56,7 +56,7 @@
       // origin, remove only this game's known files, keeping other games.
       const assets = new Set([base.href, next.origin + next.pathname,
         ...['index.html', 'main.js', 'browser-recovery.js', 'manifest.webmanifest', 'favicon.ico',
-          'ikusa-192.png', 'ikusa-512.png', 'ikusa-apple.png',
+          'ikusa-192.png', 'ikusa-512.png', 'ikusa-apple.png', 'ikusa-cover.jpg',
           'icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'key-art.jpg']
           .map((file) => new URL(file, base).href)]);
       // The Wasm filename is supplied in the HTML (directory names may differ).

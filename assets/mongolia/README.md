@@ -6,7 +6,7 @@
 - `southern.bgra`: 象兵。
 - `japan.bgra`: 鉄砲隊の人物素体、本陣建築。
 - `generation.json`: 取得元が記録した素材生成情報。未使用アトラスの情報も含む。
-- アプリ・Webアイコンも同リポジトリから流用した。
+- アプリ・Webアイコンは専用生成した assets/branding/ の素材を使う。
 
 BGRAの元ファイルを保持し、`python tools/pack_ikusa_art.py` でゲーム用RGBA/RLEアトラスとタイトル背景を再生成する。外部Pythonパッケージは不要。元のセルを抽出・縮小・アルファ形式変換して梱包する。
 

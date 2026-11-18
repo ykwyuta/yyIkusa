@@ -1,0 +1,20 @@
+{
+  "generator": "Built-in image_gen",
+  "restrictions": [
+    "2D only",
+    "No traditional Japanese painting",
+    "No 3D"
+  ],
+  "assets": [
+    {
+      "id": "icon",
+      "prompt": "Use case: logo-brand. Production APP ICON for yyIkusa, a historical real-time strategy game. Square 1024x1024 composition. A bold single heraldic GOLDEN HAWK with wings raised, its tail and body forming a spearhead, above two crossing simple ancient swords and a small crimson war pennant. An original striking emblem, instantly legible at 32 pixels. Large unified silhouette occupying the central 76 percent with generous safe margins; no tiny details. Flat TWO-DIMENSIONAL hand-drawn vector-like game emblem, crisp edges, two-tone gold and ivory highlights, deep midnight navy solid background and restrained vermilion accent. Powerful premium strategy game identity. Entire icon is flat graphic art, no bevels, no 3D, no CGI, no photorealism, no traditional Japanese painting, no ink wash, no ukiyo-e. NO letters, NO words, NO text, NO frame, NO rounded app tile mockup, NO drop shadow, NO extra objects. Centered balanced recognizable mark.",
+      "original_file": "exec-94c81f5e-27a5-4115-a824-4782688df636.png"
+    },
+    {
+      "id": "title",
+      "prompt": "Use case: stylized-concept. Production TITLE SCREEN KEY ART for yyIkusa, an original historical strategy game named Ikusa. Widescreen landscape 16:9, 1920x1080. Stunning dramatic TWO-DIMENSIONAL game illustration, polished modern anime and graphic novel crossover, confident clean ink contours, sophisticated painterly 2D color blocks, vivid crimson and antique gold against deep midnight teal. Design precise composition for functional UI: the LEFT 46 percent is quiet dark navy smoke and subtle distant banners, almost empty low-detail negative space with no characters, no bright objects and no writing. The action and characters occupy the RIGHT 54 percent: foreground adult female samurai Tomoe Gozen with flowing black hair and red lamellar armor, beside adult female Joan of Arc with a chestnut bob and silver medieval plate armor; behind them Genghis Khan with fur cap and dark moustache commands mounted lancers and archers; a large war elephant with simple wooden howdah advances at lower right among cavalry silhouettes and crimson war banners. One hawk sweeps across the upper-right sky. Fierce heroic composed faces, readable silhouettes, strong wind and glowing golden embers, distant battlefield lit by a narrow golden sunrise at right horizon. All characters historically inspired human adults, practical nonsexual armor. Elegant cinematic flat 2D light-and-shadow design, clearly illustrated and not a render. No 3D, no CGI, no photorealism, no photography, no traditional Japanese painting, no woodblock, no sumi-e, no ukiyo-e. NO text, NO title, NO letters, NO UI, NO border, NO watermark, NO modern firearms or tanks. Faces must stay completely within the right side, well inside image edges. Make this feel like spectacular finished game cover artwork.",
+      "original_file": "exec-30a7cbe8-ff3e-4843-998c-f6ef7d431154.png"
+    }
+  ]
+}

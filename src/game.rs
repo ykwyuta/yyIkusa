@@ -26,6 +26,7 @@ const GOOD: C = [0.55, 0.92, 0.55, 1.0];
 const TITLE_SIZE: (u32, u32) = (1280, 720);
 const TITLE_RGB: &[u8; (TITLE_SIZE.0 * TITLE_SIZE.1 * 3) as usize] =
     include_bytes!("../assets/branding/title.rgb");
+const TITLE_MARK: &[u8; 128 * 128 * 3] = include_bytes!("../assets/branding/mark.rgb");
 
 fn side_color(side: usize) -> C {
     if side == 0 {
@@ -62,13 +63,14 @@ impl TitleLayout {
         let (w, h) = (gfx.width as f32, gfx.height as f32);
         let compact = gfx.compact || w < 1080.0 || h < 610.0;
         let left = (w * 0.054).clamp(16.0, 76.0);
-        let top = if compact { (h * 0.045).clamp(12.0, 26.0) } else { (h * 0.10).clamp(34.0, 80.0) };
+        let top = if compact { (h * 0.045).clamp(18.0, 30.0) } else { (h * 0.065).clamp(34.0, 64.0) };
         let menu_width = if compact { (w * 0.57).min(610.0) } else { (w * 0.46).min(640.0) };
-        let preview_width = if compact { (w * 0.26).min(260.0) } else { (w * 0.27).min(370.0) };
+        let preview_width = if compact { (w * 0.26).min(250.0) } else { (menu_width * 0.42).clamp(200.0,250.0) };
         let right = w - left;
         let bottom = h - if compact { 22.0 } else { 38.0 };
         let preview_height = (preview_width - 12.0) * MH as f32 / MW as f32 + 70.0;
-        let preview = [right - preview_width, bottom - preview_height, right, bottom];
+        let preview_left = if h >= 820.0 { left } else { right - preview_width };
+        let preview = [preview_left, bottom - preview_height, preview_left + preview_width, bottom];
         Self { compact, left, top, menu_width, preview }
     }
 }
@@ -149,6 +151,7 @@ pub struct Game {
     fog_px: Vec<u32>,
     atlas: Option<Texture>,
     title_art: Option<Texture>,
+    title_mark: Option<Texture>,
     cam: (f32, f32),
     zoom: f32,
     mouse: (f32, f32),
@@ -204,6 +207,9 @@ impl Game {
             .map(|p| u32::from_le_bytes([p[0], p[1], p[2], 255]))
             .collect();
         let title_art = gfx.create_texture(TITLE_SIZE.0, TITLE_SIZE.1, &title_pixels).ok();
+        let mark_pixels: Vec<_> = TITLE_MARK.chunks_exact(3)
+            .map(|p| u32::from_le_bytes([p[0],p[1],p[2],255])).collect();
+        let title_mark = gfx.create_texture(128,128,&mark_pixels).ok();
         let mut g = Game {
             gfx,
             screen: Screen::Title,
@@ -227,6 +233,7 @@ impl Game {
             fog_px: vec![0; (MW * MH) as usize],
             atlas: None,
             title_art,
+            title_mark,
             cam: (MW as f32 * TS / 2.0, MH as f32 * TS / 2.0),
             zoom: 0.5,
             mouse: (0.0, 0.0),
@@ -1157,8 +1164,21 @@ impl Game {
             let (x, y) = ((w - aw) * 0.70, (h - ah) * 0.50);
             g.draw_textured(art, x, y, x + aw, y + ah, [1.0; 4], true);
         }
+        g.rect(0.0, 0.0, w * 0.49, h, [0.01,0.025,0.045,0.20]);
+        // Small drifting embers give the otherwise still illustration a little life.
+        for i in 0..24 {
+            let seed=i as f32;
+            let x=w*(0.46+(seed*0.173+self.clock*0.006).fract()*0.53);
+            let y=h*(1.0-(seed*0.271+self.clock*(0.017+seed*0.0003)).fract());
+            let glow=0.12+0.18*(self.clock*1.3+seed).sin().abs();
+            g.circle(x,y,if i%3==0 {1.8}else{1.0},6,[1.0,0.64,0.22,glow]);
+        }
+        if let Some(mark)=&self.title_mark {
+            let size=if layout.compact {50.0}else{66.0};
+            g.draw_textured(mark,layout.left,layout.top+15.0,layout.left+size,layout.top+15.0+size,[1.0;4],true);
+        }
         let [x0, y0, x1, y1] = layout.preview;
-        g.rect(x0, y0, x1, y1, [0.055, 0.063, 0.046, 0.96]);
+        g.rect(x0, y0, x1, y1, [0.02, 0.045, 0.065, 0.95]);
         if let Some(map) = &self.terrain {
             g.draw_textured(map, x0 + 6.0, y0 + 28.0, x1 - 6.0, y1 - 42.0, [1.0; 4], true);
         }
@@ -1532,7 +1552,14 @@ impl Game {
     fn button(&mut self, r: [f32; 4], label: &str, act: Act, active: bool) {
         let hov = self.hovered(r);
         let primary = act == Act::Start;
-        let bg = if primary {
+        let title_screen = self.screen == Screen::Title;
+        let bg = if title_screen && primary {
+            if hov { [0.76,0.22,0.16,1.0] } else { [0.58,0.12,0.10,1.0] }
+        } else if title_screen && active {
+            [0.30,0.25,0.15,0.98]
+        } else if title_screen {
+            if hov {[0.11,0.19,0.24,0.98]} else {[0.045,0.095,0.13,0.94]}
+        } else if primary {
             if hov { GOLD } else { [0.84, 0.64, 0.31, 1.0] }
         } else if active {
             [0.55, 0.42, 0.16, 0.95]
@@ -1544,13 +1571,14 @@ impl Game {
         self.gfx.fill_round(r[0], r[1], r[2], r[3], 5.0, bg);
         self.gfx.stroke_round(r[0], r[1], r[2], r[3], 5.0, 1.0, if active { GOLD } else { EDGE });
         let font = if primary { Font::BigCenter } else { Font::NormalCenter };
-        let text = if primary { [0.11, 0.08, 0.045, 1.0] } else if active { [1.0, 0.97, 0.88, 1.0] } else { TEXT };
+        let text = if title_screen && primary { [1.0,0.92,0.72,1.0] } else if primary { [0.11, 0.08, 0.045, 1.0] } else if active { [1.0, 0.97, 0.88, 1.0] } else { TEXT };
         self.gfx.text(label, r[0] + 3.0, r[1], r[2] - r[0] - 6.0, r[3] - r[1], font, text);
         self.buttons.push(Btn { r, act });
     }
 
     fn panel(&mut self, r: [f32; 4]) {
-        self.gfx.fill_round(r[0], r[1], r[2], r[3], 8.0, PANEL);
+        let background=if self.screen==Screen::Title {[0.025,0.055,0.08,0.94]}else{PANEL};
+        self.gfx.fill_round(r[0], r[1], r[2], r[3], 8.0, background);
         self.gfx.stroke_round(r[0], r[1], r[2], r[3], 8.0, 1.0, EDGE);
         self.panels.push(r);
     }
@@ -1560,28 +1588,29 @@ impl Game {
         let title = t!("英雄の戦場", "Ikusa", "英雄战场");
         let font = if compact { Font::Title } else { Font::CoverTitle };
         let th = if compact { 47.0 } else { 72.0 };
-        let tw = (self.gfx.measure(title, font).ceil() + 6.0).min(menu_width);
-        self.gfx.fill_round(left, top, left + 52.0, top + 3.0, 1.0, GOLD);
-        self.gfx.text_shadow(title, left, top + 4.0, tw, th, font, [1.0, 0.91, 0.73, 1.0]);
+        let mark_space=if compact {62.0}else{80.0};
+        let tw = (self.gfx.measure(title, font).ceil() + 6.0).min(menu_width-mark_space);
+        self.gfx.text("Y Y  I K U S A",left+mark_space,top,menu_width-mark_space,18.0,Font::Small,GOLD);
+        self.gfx.text_shadow(title, left+mark_space, top + 17.0, tw, th, font, [1.0, 0.91, 0.73, 1.0]);
         self.gfx.text(t!("時代を超えた英雄たちの合戦", "Battles of historical heroes", "英雄之战"),
-            left + 1.0, top + th + 8.0, menu_width, 23.0, Font::Big, DIM);
+            left + 1.0, top + th + 23.0, menu_width, 23.0, Font::Big, [0.78,0.83,0.84,1.0]);
 
         let pad = if compact { 14.0 } else { 20.0 };
-        let y0 = top + if compact { 82.0 } else { 116.0 };
+        let y0 = top + if compact { 99.0 } else { 130.0 };
         let x = left + pad;
         let y = y0 + pad;
         let width = menu_width - 2.0 * pad;
         let gap = 10.0;
         let column = (width - gap) / 2.0;
-        let row = if compact { 35.0 } else { 42.0 };
+        let row = if compact { 33.0 } else { 38.0 };
         let map_y = y + 28.0;
         let desc_y = map_y + 3.0 * row + 4.0;
         let desc = self.field().desc();
         let desc_h = self.gfx.measure_h(desc, Font::Normal, width).max(30.0);
         let options_y = desc_y + desc_h + 12.0;
-        let options_h = if compact { 32.0 } else { 38.0 };
+        let options_h = if compact { 30.0 } else { 34.0 };
         let footer = options_y + 26.0 + options_h + 16.0;
-        let footer_h = if compact { 40.0 } else { 50.0 };
+        let footer_h = if compact { 40.0 } else { 46.0 };
 
         self.panel([left, y0, left + menu_width, footer + footer_h + pad]);
         self.gfx.text(t!("戦場", "Battlefield", "战场"), x, y, width, 24.0, Font::Big, GOLD);
@@ -1609,7 +1638,7 @@ impl Game {
         let end = footer + footer_h;
         let start_width = width * 0.57;
         self.button([x, footer, x + start_width, end],
-            t!("準備へ進む  ▶", "To deployment  ▶", "进入准备  ▶"), Act::Start, true);
+            t!("出陣する  ▶", "Muster for battle  ▶", "出征  ▶"), Act::Start, true);
         let shortcut = (width - start_width - 2.0 * gap) / 2.0;
         let bx = x + start_width + gap;
         self.button([bx, footer, bx + shortcut, end], lang::lang().next().native(), Act::Lang, false);
