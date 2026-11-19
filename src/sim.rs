@@ -201,6 +201,7 @@ pub struct World {
     cap_warned: [bool; 2],
     /// 指揮権を返還して副官になっている自軍将軍
     pub adjutants: [bool; GENERALS.len()],
+    pub commander_skill: crate::commander_skills::CommanderState,
     pub skill_cues: Vec<crate::skill_cutin::SkillCue>,
     pub(crate) passive_announced: [[bool; GENERALS.len()]; 2],
     pub(crate) skill_started: [[Option<f32>; GENERALS.len()]; 2],
@@ -264,6 +265,7 @@ impl World {
             events: Vec::new(),
             cap_warned: [false, false],
             adjutants: [false; GENERALS.len()],
+            commander_skill: crate::commander_skills::CommanderState::default(),
             skill_cues: Vec::new(),
             passive_announced: [[false; GENERALS.len()]; 2],
             skill_started: [[None; GENERALS.len()]; 2],
@@ -409,7 +411,7 @@ impl World {
         self.units.retain(|u| u.side != side);
         self.fences.retain(|t| t.side != side);
         self.rebuild_fences_index();
-        self.spent[side] = 0;
+        self.spent[side] = if side == 0 { self.commander_skill.reserve_cost() } else { 0 };
     }
 
     fn rebuild_fences_index(&mut self) {
@@ -565,6 +567,7 @@ impl World {
             return;
         }
         self.time += DT;
+        self.expire_commander_recon();
         self.vis_t -= DT;
         if self.vis_t <= 0.0 {
             self.vis_t = 0.25;
@@ -1159,6 +1162,13 @@ impl World {
                     }
                 }
             }
+            if side == 0 && !self.commander_skill.recon.is_empty() {
+                for y in 0..MH {
+                    for x in 0..MW {
+                        if self.commander_skill.recon_at(center((x,y)), self.time) { vis[idx(x,y)] = true; }
+                    }
+                }
+            }
             self.vis[side] = vis;
         }
         // 部隊の発見
@@ -1175,6 +1185,10 @@ impl World {
                     continue;
                 }
                 let (tx, ty) = e.tile();
+                if side == 0 && self.commander_skill.recon_at(e.pos, self.time) {
+                    sp[j] = true;
+                    continue;
+                }
                 if !self.vis[side][idx(tx, ty)] {
                     continue;
                 }
@@ -1249,7 +1263,7 @@ impl World {
         if self.phase != Phase::Battle {
             return;
         }
-        let alive = [self.troop_count(0), self.troop_count(1)];
+        let alive = [self.troop_count(0) + self.commander_skill.reserves.len(), self.troop_count(1)];
         let mut end = None;
         for side in 0..2 {
             if self.capture[side] >= 1.0 {
@@ -1267,7 +1281,7 @@ impl World {
         if end.is_none() && self.time >= TIME_LIMIT {
             // 残った戦力（調達額）で判定
             let worth = |s: usize| self.units.iter().filter(|u| u.alive && u.side == s && u.kind == Kind::Troop).map(|u| u.spec().cost as f32 * u.hp / u.spec().hp).sum::<f32>();
-            let (a, b) = (worth(0), worth(1));
+            let (a, b) = (worth(0) + self.commander_skill.reserve_cost() as f32, worth(1));
             let w = if (a - b).abs() < 1.0 { None } else if a > b { Some(0) } else { Some(1) };
             end = Some((w, EndReason::TimeUp));
         }

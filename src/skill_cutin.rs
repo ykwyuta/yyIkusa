@@ -9,7 +9,16 @@ pub struct SkillCue {
     pub general: usize,
 }
 impl SkillCue {
+    pub fn commander(skill: crate::commander_skills::CommanderSkill) -> Self {
+        Self {
+            side: 0,
+            general: GENERALS.len() + skill.index(),
+        }
+    }
     fn priority(self) -> u8 {
+        if self.general >= GENERALS.len() {
+            return 3;
+        }
         match GENERALS[self.general].skill.trigger {
             Trigger::Passive => 0,
             Trigger::Revenge => 1,
@@ -17,6 +26,9 @@ impl SkillCue {
         }
     }
     pub fn duration(self) -> f32 {
+        if self.general >= GENERALS.len() {
+            return 2.4;
+        }
         match GENERALS[self.general].skill.trigger {
             Trigger::Passive => 1.4,
             Trigger::Revenge => 1.8,
@@ -28,7 +40,7 @@ pub struct Cutins {
     current: Option<(SkillCue, f32)>,
     pending: VecDeque<SkillCue>,
     now: f32,
-    last: [[f32; GENERALS.len()]; 2],
+    last: [[f32; GENERALS.len() + 4]; 2],
 }
 impl Default for Cutins {
     fn default() -> Self {
@@ -36,7 +48,7 @@ impl Default for Cutins {
             current: None,
             pending: VecDeque::new(),
             now: 0.0,
-            last: [[-100.0; GENERALS.len()]; 2],
+            last: [[-100.0; GENERALS.len() + 4]; 2],
         }
     }
 }
@@ -45,8 +57,15 @@ impl Cutins {
         self.current
     }
     pub fn push(&mut self, cue: SkillCue) {
+        // Deliberate player activations must each show, including two reconnaissance casts in quick succession.
+        if cue.side == 0 && (GENERALS.len()..GENERALS.len() + 4).contains(&cue.general) {
+            self.pending.retain(|pending| *pending != cue);
+            self.start(cue);
+            return;
+        }
         if cue.side >= 2
-            || cue.general >= GENERALS.len()
+            || cue.general >= GENERALS.len() + 4
+            || (cue.side != 0 && cue.general >= GENERALS.len())
             || self.current.is_some_and(|(c, _)| c == cue)
             || self.pending.contains(&cue)
             || self.now - self.last[cue.side][cue.general] < 6.0
@@ -142,6 +161,9 @@ pub fn decode(data: &[u8]) -> Option<(u32, u32, Vec<u32>)> {
 #[path = "skill_cutin_art.rs"]
 mod art;
 pub fn art(id: usize) -> Option<(u32, u32, Vec<u32>)> {
+    if id >= GENERALS.len() {
+        return crate::commander_skills::art(id - GENERALS.len());
+    }
     decode(art::DATA.get(id)?)
 }
 #[cfg(test)]

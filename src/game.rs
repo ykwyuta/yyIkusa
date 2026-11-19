@@ -30,6 +30,9 @@ fn segment_hits(p: (f32, f32), a: (f32, f32), b: (f32, f32), radius: f32) -> boo
     dist(p, (a.0 + t * delta.0, a.1 + t * delta.1)) < radius
 }
 
+#[path = "commander_ui.rs"]
+mod commander_ui;
+
 type C = [f32; 4];
 
 const TEXT: C = [0.94, 0.91, 0.82, 1.0];
@@ -121,6 +124,11 @@ enum Act {
     ReturnGeneral(usize),
     ActivateSkill(usize),
     SkipCutin,
+    CommanderPanel,
+    CommanderUse,
+    SelectCommander(crate::commander_skills::CommanderSkill),
+    BuyReserve(Nation, usize),
+    RefundReserve,
     DelegateSelected(usize),
     GeneralFocus((i32, i32)),
     Pause,
@@ -162,6 +170,8 @@ pub struct Game {
     cutins: crate::skill_cutin::Cutins,
     cutin_art: Option<(usize, Bitmap)>,
     show_generals: bool,
+    show_commander: bool,
+    commander_aim: bool,
     assign_to: Option<usize>,
     portraits: [Option<Bitmap>; GENERALS.len()],
     expressions: [[Option<Bitmap>; EXPRESSIONS]; GENERALS.len()],
@@ -247,6 +257,8 @@ impl Game {
             cutins: crate::skill_cutin::Cutins::default(),
             cutin_art: None,
             show_generals: false,
+            show_commander: false,
+            commander_aim: false,
             assign_to: Some(0),
             portraits: std::array::from_fn(|_| None),
             expressions: std::array::from_fn(|_| std::array::from_fn(|_| None)),
@@ -374,6 +386,8 @@ impl Game {
         self.radio = Radio::default();
         self.cutins = crate::skill_cutin::Cutins::default();
         self.show_generals = false;
+        self.show_commander = false;
+        self.commander_aim = false;
         self.assign_to = Some(0);
         self.ldown = None;
         self.delegate_stroke = None;
@@ -604,6 +618,7 @@ impl Game {
 
     fn down(&mut self, b: u8, p: (f32, f32)) {
         self.mouse = p;
+        if b == 1 && self.commander_aim { self.commander_aim = false; return; }
         if b == 2 {
             self.mdown = Some((p, self.cam));
             return;
@@ -625,6 +640,10 @@ impl Game {
                 return;
             }
             let wp = self.to_world(p);
+            if self.world.phase == Phase::Battle && self.commander_aim {
+                self.activate_commander(Some(wp));
+                return;
+            }
             match self.world.phase {
                 Phase::Prep if self.show_generals => self.start_delegation(p),
                 Phase::Prep => self.apply_tool(wp),
@@ -749,6 +768,10 @@ impl Game {
                     self.show_help = false;
                 } else if self.cutins.current().is_some() {
                     self.cutins.skip();
+                } else if self.commander_aim {
+                    self.commander_aim = false;
+                } else if self.show_commander {
+                    self.show_commander = false;
                 } else if self.show_generals {
                     self.act(Act::Generals);
                 } else if self.attack_mode {
@@ -773,6 +796,7 @@ impl Game {
             0x53 => self.act(Act::Stop),
             0x44 => self.act(Act::Hawk),
             0x47 => self.act(Act::Generals),
+            0x43 => self.act(Act::CommanderUse),
             0x51 => self.act(Act::AllTroops),
             0xbb | 0x6b => self.speed = (self.speed + 1).min(4),
             0xbd | 0x6d => self.speed = self.speed.saturating_sub(1).max(1),
@@ -1030,8 +1054,10 @@ impl Game {
                 self.world.clear_side(0);
                 ai::prepare(&mut self.world, 0, self.seed ^ (self.clock * 1000.0) as u32);
             }
-            Act::Clear => self.world.clear_side(0),
+            Act::Clear => { self.world.clear_side(0); self.world.clear_reserves(); },
             Act::Generals if matches!(self.world.phase, Phase::Prep | Phase::Battle) => {
+                self.show_commander = false;
+                self.commander_aim = false;
                 self.show_generals = !self.show_generals;
                 self.ldown = None;
                 self.delegate_stroke = None;
@@ -1060,6 +1086,15 @@ impl Game {
             {
                 self.assign_to = id;
             }
+            Act::CommanderPanel => self.toggle_commander_panel(),
+            Act::CommanderUse => self.begin_commander_use(),
+            Act::SelectCommander(skill) => { self.world.select_commander_skill(skill); }
+            Act::BuyReserve(nation, ti) => {
+                if !self.world.buy_reserve(nation, ti) {
+                    self.notify(t!("予算が足りません", "Not enough budget", "预算不足"));
+                }
+            }
+            Act::RefundReserve => { self.world.refund_last_reserve(); }
             Act::SkipCutin => self.cutins.skip(),
             Act::ActivateSkill(id) => {
                 self.world.activate_skill(0, id);
@@ -1125,6 +1160,8 @@ impl Game {
                     return;
                 }
                 self.show_generals = false;
+                self.show_commander = false;
+                self.commander_aim = false;
                 self.ldown = None;
                 self.delegate_stroke = None;
                 generals::delegate_enemy(&mut self.world, self.seed);
@@ -1144,6 +1181,7 @@ impl Game {
                 }
             }
             Act::AttackMode => {
+                self.commander_aim = false;
                 if !self.sel.is_empty() {
                     self.attack_mode = !self.attack_mode;
                 }
@@ -1208,11 +1246,14 @@ impl Game {
                 self.render_labels();
                 self.render_hud();
                 if self.world.phase == Phase::Prep {
-                    if self.show_generals { self.render_generals(); }
+                    if self.show_commander { self.render_commander_panel(); }
+                    else if self.show_generals { self.render_generals(); }
                     else { self.render_shop(); }
                 } else {
                     self.render_selection();
-                    if self.world.phase == Phase::Battle && self.show_generals {
+                    if self.world.phase == Phase::Battle && self.show_commander {
+                        self.render_commander_panel();
+                    } else if self.world.phase == Phase::Battle && self.show_generals {
                         self.render_generals();
                     } else if !self.show_help {
                         self.render_general_report();
@@ -1825,9 +1866,10 @@ impl Game {
                 }
             }
         }
+        self.render_commander_widget();
         // 出来事の記録
         let lw = if compact { 300.0 } else { 380.0 };
-        let mut y = bar + 8.0;
+        let mut y = bar + if self.world.phase == Phase::Prep { 82.0 } else { 8.0 };
         let lx = if self.world.phase == Phase::Prep { 10.0 } else { w - lw - 10.0 };
         let lines: Vec<(String, f32, bool)> = self.log.iter().rev().take(6).filter(|l| l.age < 10.0).map(|l| (l.text.clone(), l.age, l.good)).collect();
         for (text, age, good) in lines.into_iter() {
@@ -1954,12 +1996,16 @@ impl Game {
         self.gfx.fill_rect(left, bottom - 3.0, right, bottom, with_a(accent, fade));
         let x = left + 22.0;
         let text_width = (width * 0.43 - 28.0).max(140.0);
-        let heading = if cue.side == 0 { t!("固有スキル発動", "SIGNATURE SKILL", "专属技能发动") }
+        let player_skill = crate::commander_skills::ALL.get(cue.general.saturating_sub(GENERALS.len())).copied().filter(|_| cue.general >= GENERALS.len());
+        let heading = if player_skill.is_some() { t!("総司令官スキル発動", "SUPREME COMMAND", "总指挥技能发动") }
+            else if cue.side == 0 { t!("固有スキル発動", "SIGNATURE SKILL", "专属技能发动") }
             else { t!("敵将軍・固有スキル", "ENEMY SIGNATURE SKILL", "敌将专属技能") };
         self.gfx.text(heading, x, top + height * 0.20, text_width, 24.0, Font::Big, with_a(accent, fade));
-        let general = &GENERALS[cue.general];
-        self.gfx.text(general.name(), x, top + height * 0.33, text_width, 44.0, Font::Big, with_a(TEXT, fade));
-        self.gfx.text(general.skill.name(), x, top + height * 0.49, text_width, 72.0,
+        let (name, skill_name) = if let Some(skill) = player_skill {
+            (t!("総司令官", "Supreme commander", "总指挥"), skill.name())
+        } else { (GENERALS[cue.general].name(), GENERALS[cue.general].skill.name()) };
+        self.gfx.text(name, x, top + height * 0.33, text_width, 44.0, Font::Big, with_a(TEXT, fade));
+        self.gfx.text(skill_name, x, top + height * 0.49, text_width, 72.0,
             if width >= 700.0 { Font::TitleMid } else { Font::Big }, with_a(accent, fade));
         self.gfx.text(t!("クリック／Escで閉じる", "Click / Esc to dismiss", "点击／Esc关闭"),
             x, bottom - 33.0, text_width, 22.0, Font::Small, with_a(DIM, fade));
@@ -2597,6 +2643,54 @@ fn draw_hawk(g: &mut Gfx, u: &Unit, clock: f32) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[cfg(windows)]
+    #[test]
+    #[ignore = "requires a Windows graphics device; verifies commander controls and saves screenshots"]
+    fn commander_skill_preview() {
+        use windows::core::w;
+        use windows::Win32::UI::WindowsAndMessaging::*;
+        use crate::commander_skills::{ALL, CommanderSkill};
+        struct PreviewWindow(windows::Win32::Foundation::HWND);
+        impl Drop for PreviewWindow { fn drop(&mut self) { unsafe { let _=DestroyWindow(self.0); } } }
+        crate::lang::set_lang(crate::lang::Lang::Ja);
+        let destination=std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("target/commander-preview");
+        std::fs::create_dir_all(&destination).unwrap();
+        for (width,height) in [(1280,720),(900,540)] {
+            let hwnd=unsafe{CreateWindowExW(WINDOW_EX_STYLE::default(),w!("STATIC"),w!("Commander render test"),WS_POPUP,0,0,width,height,None,None,None,None).unwrap()};
+            let _window=PreviewWindow(hwnd);
+            let mut game=Game::new(Gfx::new(hwnd,width as u32,height as u32).unwrap());
+            game.screen=Screen::Battle;
+            game.world.units.push(World::new_unit(0,Kind::Troop,Nation::Roster,0,center((10,20))));
+            game.act(Act::SelectCommander(CommanderSkill::Reserves));
+            game.act(Act::BuyReserve(Nation::Roster,0));
+            game.act(Act::BuyReserve(Nation::Roster,1));
+            assert_eq!(game.world.commander_skill.reserves.len(),2);
+            game.show_commander=true;
+            game.gfx.begin([0.08,0.09,0.07,1.0]);assert!(game.gfx.d2d_begin());
+            game.render_commander_widget();game.render_commander_panel();game.gfx.d2d_end();
+            game.gfx.save_backbuffer(destination.join(format!("selection-{}x{}.bmp",width,height)).to_str().unwrap()).unwrap();
+            for skill in ALL {
+                game.cutins=crate::skill_cutin::Cutins::default();
+                game.cutins.push(crate::skill_cutin::SkillCue::commander(skill));
+                for _ in 0..3 {game.cutins.update(0.1);}
+                game.gfx.begin([0.08,0.09,0.07,1.0]);assert!(game.gfx.d2d_begin());
+                game.render_skill_cutin();game.gfx.d2d_end();
+                let file=destination.join(format!("skill-{}-{}x{}.bmp",skill.index(),width,height));
+                game.gfx.save_backbuffer(file.to_str().unwrap()).unwrap();
+                assert!(file.metadata().unwrap().len()>100_000);
+            }
+            game.cutins=crate::skill_cutin::Cutins::default();
+            game.act(Act::SelectCommander(CommanderSkill::EagleEye));
+            game.world.start_battle();
+            game.key(0x43,true);assert!(game.commander_aim);
+            game.key(0x1b,true);assert!(!game.commander_aim);
+            assert_eq!(game.world.commander_skill.remaining(),2);
+            let old=game.world.commander_skill.selected;
+            game.act(Act::SelectCommander(CommanderSkill::Reserves));
+            assert_eq!(game.world.commander_skill.selected,old);
+        }
+    }
 
     /// Renders the production cut-in into a hidden swapchain, without driving any desktop UI.
     #[cfg(windows)]

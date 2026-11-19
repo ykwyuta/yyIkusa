@@ -80,3 +80,7 @@ Cloudflare設定名は `yyikusa`。公開する場合は `npm run deploy` を実
 アプリアイコンとタイトル背景はyyIkusa専用の2Dイラスト。鷹・剣・軍旗の紋章をWindows実行ファイル、favicon、Webアプリ、ホーム画面で共用する。タイトル画面は専用キービジュアル、濃紺・金・朱赤の操作パネル、漂う火の粉で構成する。生成プロンプトと再梱包方法は [assets/branding/README.md](assets/branding/README.md) を参照。
 
 [yyMongolia](https://github.com/ykwyuta/yyMongolia) の本陣建築などを流用。由来と再生成方法は [assets/mongolia/README.md](assets/mongolia/README.md) を参照。8兵種の方向・歩行差分と将軍イラストはyyIkusa専用に生成し、柵・鷹はコードで描画する。武器と砲兵も兵種の原画に含む。
+
+### 総司令官スキル
+
+開戦前に左上の「詳細」から鷹の目・緊急補給・突破命令・総予備隊のいずれか1つを選択できます。戦闘中はCキーまたは左上のボタンで発動し、鷹の目と緊急補給は地図上の地点を指定します。総予備隊は同じ準備予算から事前購入した部隊を基地へ投入します。各スキルの効果・回数・操作は [GENERAL_SKILLS.md](GENERAL_SKILLS.md) を参照してください。

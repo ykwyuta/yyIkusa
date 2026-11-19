@@ -103,6 +103,9 @@ impl World {
         if self.phase != Phase::Battle || !unit.alive || unit.kind != Kind::Troop {
             return Bonuses::NONE;
         }
+        if unit.manually_controlled() && self.time < self.commander_skill.breakthrough_until {
+            return Bonuses { damage: 1.5, speed: 1.25, ..Bonuses::NONE };
+        }
         let Some(id) = unit.general.filter(|&id| id < GENERALS.len()) else {
             return Bonuses::NONE;
         };

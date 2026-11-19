@@ -58,7 +58,7 @@ fn animations_end_on_presentation_time_and_invalid_cues_are_ignored() {
     });
     queue.push(SkillCue {
         side: 0,
-        general: GENERALS.len(),
+        general: GENERALS.len() + 4,
     });
     assert!(queue.current().is_none());
     let active = cue(Trigger::Once, 1);
@@ -107,7 +107,7 @@ fn every_general_has_a_distinct_opaque_large_cutin_within_the_wasm_budget() {
             "Duplicate cut-in image at {id}"
         );
     }
-    assert!(super::art(GENERALS.len()).is_none());
+    assert!(super::art(GENERALS.len() + 4).is_none());
 }
 
 #[test]

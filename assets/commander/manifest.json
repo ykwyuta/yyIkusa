@@ -1,0 +1,38 @@
+{
+  "generator": "Built-in image_gen",
+  "original_size": [
+    1536,
+    1024
+  ],
+  "runtime_size": [
+    768,
+    512
+  ],
+  "characters": [
+    {
+      "id": "eagle_eye",
+      "file": "eagle_eye_v2.png",
+      "packed": "eagle_eye.yyci",
+      "prompt": "Use case: stylized-concept. ONE premium 1536x1024 landscape 2D illustrated strategy game special ability cut-in. HAWK EYE: a huge radiant golden hawk emblem with a fierce sharp eye spreading its wings over an expansive historical battlefield relief map, turquoise rings uncovering tiny hidden army formations in forests and valleys. The bird and dramatic tactical terrain are the only heroes of the image. This represents the PLAYER'S SUPREME COMMAND ability, not any historical general's personal ability. Critical constraints: NO portraits, NO large faces, NO foreground leader, NO Nobunaga, NO named historical person, NO recognizable clan symbols or family crests, NO flower crests. Only small anonymous period soldiers are permitted as part of the army scene. Plain banners with NO symbols. Weapons and transport are historical swords, spears, bows, matchlocks, cavalry and horse-drawn wagons; no motor vehicles. Beautiful polished anime-style 2D game key art, cinematic spectacular light, clear dramatic composition. Main subject RIGHT TWO THIRDS, LEFT THIRD deep dark navy negative space for game-rendered title. No text, letters, numbers, logos, UI, watermark, 3D, CGI, ukiyo-e or ink wash."
+    },
+    {
+      "id": "emergency_supply",
+      "file": "emergency_supply_v2.png",
+      "packed": "emergency_supply.yyci",
+      "prompt": "Use case: stylized-concept. ONE premium 1536x1024 landscape 2D illustrated strategy game special ability cut-in. EMERGENCY SUPPLY: a magnificent horse-drawn supply convoy loaded with crates, medicine, tools and provisions arriving to restore a tired historical army, small anonymous field medics and craftspeople working together, luminous green-gold restorative ribbons connecting supply wagons to units. Logistics and teamwork, not a commander portrait. This represents the PLAYER'S SUPREME COMMAND ability, not any historical general's personal ability. Critical constraints: NO portraits, NO large faces, NO foreground leader, NO Nobunaga, NO named historical person, NO recognizable clan symbols or family crests, NO flower crests. Only small anonymous period soldiers are permitted as part of the army scene. Plain banners with NO symbols. Weapons and transport are historical swords, spears, bows, matchlocks, cavalry and horse-drawn wagons; no motor vehicles. Beautiful polished anime-style 2D game key art, cinematic spectacular light, clear dramatic composition. Main subject RIGHT TWO THIRDS, LEFT THIRD deep dark navy negative space for game-rendered title. No text, letters, numbers, logos, UI, watermark, 3D, CGI, ukiyo-e or ink wash."
+    },
+    {
+      "id": "breakthrough",
+      "file": "breakthrough_v2.png",
+      "packed": "breakthrough.yyci",
+      "prompt": "Use case: stylized-concept. ONE premium 1536x1024 landscape 2D illustrated strategy game special ability cut-in. BREAKTHROUGH ORDER: a vast anonymous mixed historical army of infantry with shields and spears and armored cavalry breaking through a defensive line in a powerful diagonal spearhead, crimson and golden speed trails and an enormous luminous forward-pointing spear shape above them. Sweeping wide-angle army action, no oversized foreground individual. This represents the PLAYER'S SUPREME COMMAND ability, not any historical general's personal ability. Critical constraints: NO portraits, NO large faces, NO foreground leader, NO Nobunaga, NO named historical person, NO recognizable clan symbols or family crests, NO flower crests. Only small anonymous period soldiers are permitted as part of the army scene. Plain banners with NO symbols. Weapons and transport are historical swords, spears, bows, matchlocks, cavalry and horse-drawn wagons; no motor vehicles. Beautiful polished anime-style 2D game key art, cinematic spectacular light, clear dramatic composition. Main subject RIGHT TWO THIRDS, LEFT THIRD deep dark navy negative space for game-rendered title. No text, letters, numbers, logos, UI, watermark, 3D, CGI, ukiyo-e or ink wash."
+    },
+    {
+      "id": "reserves",
+      "file": "reserves_v2.png",
+      "packed": "reserves.yyci",
+      "prompt": "Use case: stylized-concept. ONE premium 1536x1024 landscape 2D illustrated strategy game special ability cut-in. GRAND RESERVE: a vast fresh historical reserve army marching down from fortified headquarters at dawn, long ranks of infantry and cavalry emerging from blue haze, plain unmarked cloth banners, blue and silver-gold energy arcs suggesting a fresh strategic reserve entering battle. The massed reinforcements and headquarters landscape are the protagonists. This represents the PLAYER'S SUPREME COMMAND ability, not any historical general's personal ability. Critical constraints: NO portraits, NO large faces, NO foreground leader, NO Nobunaga, NO named historical person, NO recognizable clan symbols or family crests, NO flower crests. Only small anonymous period soldiers are permitted as part of the army scene. Plain banners with NO symbols. Weapons and transport are historical swords, spears, bows, matchlocks, cavalry and horse-drawn wagons; no motor vehicles. Beautiful polished anime-style 2D game key art, cinematic spectacular light, clear dramatic composition. Main subject RIGHT TWO THIRDS, LEFT THIRD deep dark navy negative space for game-rendered title. No text, letters, numbers, logos, UI, watermark, 3D, CGI, ukiyo-e or ink wash."
+    }
+  ],
+  "art_direction": "Supreme command motifs, no named commander portraits or clan crests"
+}

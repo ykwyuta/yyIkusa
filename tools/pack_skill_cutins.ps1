@@ -1,3 +1,4 @@
+param([string]$AssetDirectory = 'assets/generals/cutins')
 # Pack generated PNG originals into compact 768x512 indexed cut-in assets. No external dependencies.
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
@@ -98,12 +99,12 @@ public static class SkillCutinPacker {
 }
 '@
 
-$assetRoot = Join-Path (Split-Path $PSScriptRoot -Parent) 'assets/generals/cutins'
+$assetRoot = Join-Path (Split-Path $PSScriptRoot -Parent) $AssetDirectory
 $manifest = Get-Content -LiteralPath (Join-Path $assetRoot 'manifest.json') -Raw | ConvertFrom-Json
 $total = 0
 foreach ($character in $manifest.characters) {
     if ($character.id -notmatch '^[a-z_]+$') { throw 'Invalid asset identifier' }
-    $source = Join-Path $assetRoot ($character.id + '.png')
+    $source = Join-Path $assetRoot $character.file
     $output = Join-Path $assetRoot ($character.id + '.yyci')
     $bytes = [SkillCutinPacker]::Pack($source, $output)
     $total += $bytes
