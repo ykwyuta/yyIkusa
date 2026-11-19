@@ -15,6 +15,7 @@ mod game;
 mod general_dialogue;
 mod general_radio;
 mod general_skills;
+mod commander_skills;
 mod skill_cutin;
 mod generals;
 mod map;
