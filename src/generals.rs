@@ -1,6 +1,7 @@
 //! 将軍の名簿と、委任された自軍部隊の自動指揮。
 
 use crate::data::Terrain;
+use crate::general_skills::{Bonuses, Skill, Trigger};
 use crate::map::{center, idx, inside, tile_of, MH, MW, TS};
 use crate::sim::{dist, Kind, Order, Phase, Target, Unit, World, CAPTURE_R};
 
@@ -66,6 +67,7 @@ pub struct General {
     pub gender: Gender,
     names: [&'static str; 3],
     pub strategy: Strategy,
+    pub skill: Skill,
 }
 
 impl General {
@@ -78,26 +80,26 @@ use Strategy::{Defense, Guerrilla, Offensive, Raid};
 
 // 徴側・徴弐は共同指揮の1枠。台詞はゲーム用創作。
 pub const GENERALS: [General; 20] = [
-    General { names: ["巴御前", "Tomoe Gozen", "巴御前"], gender: Gender::Female, strategy: Raid },
-    General { names: ["ジャンヌ・ダルク", "Joan of Arc", "贞德"], gender: Gender::Female, strategy: Offensive },
-    General { names: ["徴姉妹（徴側・徴弐）", "Trung Sisters", "征氏姐妹"], gender: Gender::Female, strategy: Guerrilla },
-    General { names: ["ラクシュミー・バーイー", "Lakshmibai", "拉克希米·巴伊"], gender: Gender::Female, strategy: Raid },
-    General { names: ["ブーディカ", "Boudica", "布狄卡"], gender: Gender::Female, strategy: Offensive },
-    General { names: ["アルテミシア", "Artemisia I", "阿尔忒弥西亚"], gender: Gender::Female, strategy: Defense },
-    General { names: ["ゼノビア", "Zenobia", "芝诺比娅"], gender: Gender::Female, strategy: Defense },
-    General { names: ["タマル", "Tamar", "塔玛尔"], gender: Gender::Female, strategy: Defense },
-    General { names: ["花木蘭", "Hua Mulan", "花木兰"], gender: Gender::Female, strategy: Guerrilla },
-    General { names: ["トミュリス", "Tomyris", "托米丽司"], gender: Gender::Female, strategy: Raid },
-    General { names: ["アレクサンドロス", "Alexander the Great", "亚历山大"], gender: Gender::Male, strategy: Offensive },
-    General { names: ["ハンニバル", "Hannibal", "汉尼拔"], gender: Gender::Male, strategy: Guerrilla },
-    General { names: ["チンギス・ハン", "Genghis Khan", "成吉思汗"], gender: Gender::Male, strategy: Raid },
-    General { names: ["サラディン", "Saladin", "萨拉丁"], gender: Gender::Male, strategy: Defense },
-    General { names: ["織田信長", "Oda Nobunaga", "织田信长"], gender: Gender::Male, strategy: Offensive },
-    General { names: ["カエサル", "Julius Caesar", "凯撒"], gender: Gender::Male, strategy: Offensive },
-    General { names: ["スブタイ", "Subutai", "速不台"], gender: Gender::Male, strategy: Raid },
-    General { names: ["武田信玄", "Takeda Shingen", "武田信玄"], gender: Gender::Male, strategy: Defense },
-    General { names: ["李舜臣", "Yi Sun-sin", "李舜臣"], gender: Gender::Male, strategy: Guerrilla },
-    General { names: ["ナポレオン", "Napoleon Bonaparte", "拿破仑"], gender: Gender::Male, strategy: Offensive },
+    General { names: ["巴御前", "Tomoe Gozen", "巴御前"], gender: Gender::Female, strategy: Raid, skill: Skill { names: ["最期の一太刀", "Last Blade", "临终一刀"], trigger: Trigger::Revenge, bonuses: Bonuses::NONE }, },
+    General { names: ["ジャンヌ・ダルク", "Joan of Arc", "贞德"], gender: Gender::Female, strategy: Offensive, skill: Skill { names: ["オルレアンの旗", "Banner of Orleans", "奥尔良之旗"], trigger: Trigger::Once, bonuses: Bonuses { damage: 1.5, ..Bonuses::NONE } }, },
+    General { names: ["徴姉妹（徴側・徴弐）", "Trung Sisters", "征氏姐妹"], gender: Gender::Female, strategy: Guerrilla, skill: Skill { names: ["姉妹の結束", "Sisters United", "姐妹同心"], trigger: Trigger::Passive, bonuses: Bonuses { armor: 1.2, fire_rate: 1.2, ..Bonuses::NONE } }, },
+    General { names: ["ラクシュミー・バーイー", "Lakshmibai", "拉克希米·巴伊"], gender: Gender::Female, strategy: Raid, skill: Skill { names: ["ジャーンシーの疾風", "Gale of Jhansi", "占西疾风"], trigger: Trigger::Passive, bonuses: Bonuses { speed: 1.4, penetration: 1.2, ..Bonuses::NONE } }, },
+    General { names: ["ブーディカ", "Boudica", "布狄卡"], gender: Gender::Female, strategy: Offensive, skill: Skill { names: ["戦車女王の憤怒", "Queen of Vengeance", "战车女王之怒"], trigger: Trigger::Passive, bonuses: Bonuses { damage: 1.35, speed: 1.15, ..Bonuses::NONE } }, },
+    General { names: ["アルテミシア", "Artemisia I", "阿尔忒弥西亚"], gender: Gender::Female, strategy: Defense, skill: Skill { names: ["海戦の盾", "Naval Shield", "海战之盾"], trigger: Trigger::Passive, bonuses: Bonuses { armor: 1.35, range: 1.1, ..Bonuses::NONE } }, },
+    General { names: ["ゼノビア", "Zenobia", "芝诺比娅"], gender: Gender::Female, strategy: Defense, skill: Skill { names: ["砂漠の城塞", "Desert Citadel", "沙漠城塞"], trigger: Trigger::Passive, bonuses: Bonuses { range: 1.3, armor: 1.15, ..Bonuses::NONE } }, },
+    General { names: ["タマル", "Tamar", "塔玛尔"], gender: Gender::Female, strategy: Defense, skill: Skill { names: ["黄金時代の加護", "Golden Age", "黄金时代庇护"], trigger: Trigger::Passive, bonuses: Bonuses { repair: 0.004, ..Bonuses::NONE } }, },
+    General { names: ["花木蘭", "Hua Mulan", "花木兰"], gender: Gender::Female, strategy: Guerrilla, skill: Skill { names: ["千里の斥候", "Far-Ranging Scout", "千里斥候"], trigger: Trigger::Passive, bonuses: Bonuses { sight: 1.5, speed: 1.15, ..Bonuses::NONE } }, },
+    General { names: ["トミュリス", "Tomyris", "托米丽司"], gender: Gender::Female, strategy: Raid, skill: Skill { names: ["草原女王の猛撃", "Steppe Queen Strike", "草原女王猛击"], trigger: Trigger::Passive, bonuses: Bonuses { damage: 1.25, penetration: 1.25, ..Bonuses::NONE } }, },
+    General { names: ["アレクサンドロス", "Alexander the Great", "亚历山大"], gender: Gender::Male, strategy: Offensive, skill: Skill { names: ["征服王の進撃", "Conqueror March", "征服王进军"], trigger: Trigger::Passive, bonuses: Bonuses { speed: 1.25, damage: 1.25, ..Bonuses::NONE } }, },
+    General { names: ["ハンニバル", "Hannibal", "汉尼拔"], gender: Gender::Male, strategy: Guerrilla, skill: Skill { names: ["包囲殲滅", "Encirclement", "包围歼灭"], trigger: Trigger::Passive, bonuses: Bonuses { penetration: 1.4, sight: 1.2, ..Bonuses::NONE } }, },
+    General { names: ["チンギス・ハン", "Genghis Khan", "成吉思汗"], gender: Gender::Male, strategy: Raid, skill: Skill { names: ["蒼き狼の軍勢", "Host of the Blue Wolf", "苍狼军势"], trigger: Trigger::Passive, bonuses: Bonuses { speed: 1.5, range: 1.2, ..Bonuses::NONE } }, },
+    General { names: ["サラディン", "Saladin", "萨拉丁"], gender: Gender::Male, strategy: Defense, skill: Skill { names: ["慈悲の守護", "Merciful Guard", "仁慈守护"], trigger: Trigger::Passive, bonuses: Bonuses { armor: 1.2, repair: 0.002, ..Bonuses::NONE } }, },
+    General { names: ["織田信長", "Oda Nobunaga", "织田信长"], gender: Gender::Male, strategy: Offensive, skill: Skill { names: ["三段撃ち", "Rotating Volley", "三段射击"], trigger: Trigger::Passive, bonuses: Bonuses { fire_rate: 1.5, ..Bonuses::NONE } }, },
+    General { names: ["カエサル", "Julius Caesar", "凯撒"], gender: Gender::Male, strategy: Offensive, skill: Skill { names: ["軍団の規律", "Legion Discipline", "军团纪律"], trigger: Trigger::Passive, bonuses: Bonuses { armor: 1.25, fire_rate: 1.15, ..Bonuses::NONE } }, },
+    General { names: ["スブタイ", "Subutai", "速不台"], gender: Gender::Male, strategy: Raid, skill: Skill { names: ["大迂回", "Great Flanking March", "大迂回"], trigger: Trigger::Passive, bonuses: Bonuses { speed: 1.35, sight: 1.4, ..Bonuses::NONE } }, },
+    General { names: ["武田信玄", "Takeda Shingen", "武田信玄"], gender: Gender::Male, strategy: Defense, skill: Skill { names: ["不動如山", "Immovable Mountain", "不动如山"], trigger: Trigger::Passive, bonuses: Bonuses { armor: 1.5, ..Bonuses::NONE } }, },
+    General { names: ["李舜臣", "Yi Sun-sin", "李舜臣"], gender: Gender::Male, strategy: Guerrilla, skill: Skill { names: ["鶴翼の射陣", "Crane Wing Formation", "鹤翼射阵"], trigger: Trigger::Passive, bonuses: Bonuses { range: 1.4, penetration: 1.2, ..Bonuses::NONE } }, },
+    General { names: ["ナポレオン", "Napoleon Bonaparte", "拿破仑"], gender: Gender::Male, strategy: Offensive, skill: Skill { names: ["大陸軍の砲火", "Grande Armee Fire", "大军团炮火"], trigger: Trigger::Passive, bonuses: Bonuses { damage: 1.3, range: 1.25, ..Bonuses::NONE } }, },
 ];
 
 // Generated 2D character portraits, ordered exactly like GENERALS.
@@ -374,12 +376,12 @@ fn go(position: Point, goal: Point, attack: bool) -> Order {
 }
 
 fn sight(world: &World, unit: &Unit, from: Point, enemy: &Unit) -> bool {
-    dist(from, enemy.pos) <= unit.spec().range * TS && world.map.los(tile_of(from), enemy.tile())
+    dist(from, enemy.pos) <= world.effective_range(unit) && world.map.los(tile_of(from), enemy.tile())
 }
 
-fn penetration(unit: &Unit, from: Point, enemy: &Unit) -> f32 {
-    let fraction = (dist(from, enemy.pos) / (unit.spec().range * TS)).min(1.0);
-    unit.spec().pen * (1.0 - 0.3 * fraction)
+fn penetration(world: &World, unit: &Unit, from: Point, enemy: &Unit) -> f32 {
+    let fraction = (dist(from, enemy.pos) / (world.effective_range(unit))).min(1.0);
+    unit.spec().pen * world.command_bonuses(unit).penetration * (1.0 - 0.3 * fraction)
 }
 
 fn engage(
@@ -389,7 +391,7 @@ fn engage(
     limit: Option<(Point, f32)>,
 ) -> Option<Order> {
     let in_sector = |point| limit.is_none_or(|(base, radius)| dist(base, point) <= radius);
-    let range = unit.spec().range * TS;
+    let range = world.effective_range(unit);
     let viable = |enemy: &Unit| {
         let near = dist(unit.pos, enemy.pos) < range + TS * 4.0;
         near && in_sector(enemy.pos)
@@ -414,14 +416,14 @@ fn engage(
             0.0
         };
         let score = dist(unit.pos, enemy.pos) / range + hp * 0.58 - focus;
-        let armor = enemy.armor_toward(unit.pos);
-        let pen = penetration(unit, unit.pos, enemy);
+        let armor = world.effective_armor(enemy, unit.pos);
+        let pen = penetration(world, unit, unit.pos, enemy);
         if pen >= armor * 0.88 && sight(world, unit, unit.pos, enemy) {
             let shot_score = score + armor / pen * 0.30;
             if best_shot.is_none_or(|(best, _)| shot_score < best) {
                 best_shot = Some((shot_score, i));
             }
-        } else if unit.spec().pen >= enemy.spec().rear() * 0.83 {
+        } else if unit.spec().pen * world.command_bonuses(unit).penetration >= enemy.spec().rear() * world.command_bonuses(enemy).armor * 0.83 {
             maneuvers.push((score, i));
         }
     }
@@ -433,7 +435,7 @@ fn engage(
         let enemy = &world.units[i];
         let viable_shot = |point| {
             in_sector(point)
-                && penetration(unit, point, enemy) >= enemy.armor_toward(point) * 0.90
+                && penetration(world, unit, point, enemy) >= world.effective_armor(enemy, point) * 0.90
                 && sight(world, unit, point, enemy)
         };
         if let Order::Move {
@@ -464,7 +466,7 @@ fn firing_position(
     let extra = world.extra_cost(unit.side);
     let mut candidates = Vec::new();
     for fraction in [0.58, 0.85] {
-        let radius = TS * unit.spec().range * fraction;
+        let radius = world.effective_range(unit) * fraction;
         for direction in 0..8 {
             let angle = enemy.hull + direction as f32 * std::f32::consts::FRAC_PI_4;
             let target = tile_of((
@@ -561,7 +563,7 @@ mod tests {
             panic!("a troop facing heavy frontal armor should find a firing position");
         };
         assert!(
-            penetration(&world.units[own], goal, &world.units[heavy])
+            penetration(&world, &world.units[own], goal, &world.units[heavy])
                 >= world.units[heavy].armor_toward(goal) * 0.90
         );
     }
