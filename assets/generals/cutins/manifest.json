@@ -1,0 +1,154 @@
+{
+  "generator": "Built-in image_gen",
+  "purpose": "Dedicated large signature-skill cut-in illustrations",
+  "original_size": [
+    1536,
+    1024
+  ],
+  "runtime_size": [
+    768,
+    512
+  ],
+  "characters": [
+    {
+      "id": "tomoe_gozen",
+      "reference": "../tomoe_gozen.png",
+      "file": "tomoe_gozen.png",
+      "packed": "tomoe_gozen.yyci",
+      "prompt": "Use case: stylized-concept. Create ONE finished large landscape 1536x1024 special-skill cut-in illustration for a historical strategy game. Reference image is ONLY the character identity, costume and style reference; preserve the same recognizable adult face, hair, clothing palette, single character and high-quality 2D drawing style. This must be NEW dynamic waist-up action key art, not an enlarged portrait. Scene and skill motif: Tomoe Gozen, adult Japanese female samurai in vivid red lamellar armor, long flowing black hair with red ribbon, fierce resolute gaze, dynamic unsheathing final sword slash with silver blade and red energy arc, non-graphic, premium contemporary 2D anime cel illustration. Composition: character on RIGHT TWO THIRDS, expressive face large and fully inside frame with 8% head clearance, pose and weapon can extend toward center; LEFT THIRD is atmospheric deep navy negative space for titles added by game code. Dramatic light, sharp clear silhouette, skill-colored flowing energy trails, refined premium game illustration. One continuous illustration, no panel or grid. No text, captions, numbers, letters, user interface, watermarks, logos, historical extremist insignia, 3D or CGI. No traditional Japanese painting, ukiyo-e, woodblock or ink wash. Characters adult and fully clothed."
+    },
+    {
+      "id": "joan_of_arc",
+      "reference": "../joan_of_arc.png",
+      "file": "joan_of_arc.png",
+      "packed": "joan_of_arc.yyci",
+      "prompt": "Use case: historical-scene. Generate one finished large landscape 1536x1024 cinematic special-skill cut-in illustration for the historical strategy game yyIkusa, NOT a mockup. Reference image defines Joan of Arc's identity: same adult young French woman, short chestnut bob, silver medieval plate armor and blue undergarment. Preserve recognizable face and costume and French bande dessinee drawing style, polished expressive precise ink lines and rich clean colors. Show a NEW dynamic waist-up command pose, raising a long white-and-blue battle banner with golden fleur-de-lis, brave resolute expression, flowing cloth, radiant golden dawn breaking through smoke with blue-white streaks. Subject prominently on RIGHT TWO THIRDS, entire face and head well inside image; left third atmospheric deep navy negative space for separately rendered skill title. Dramatic foreshortening and rim light, premium 2D game key art. No lettering, no text, no numbers, no UI, no watermark, no 3D/CGI, no Japanese traditional painting. Original new artwork for Banner of Orleans skill."
+    },
+    {
+      "id": "trung_sisters",
+      "reference": "../trung_sisters.png",
+      "file": "trung_sisters.png",
+      "packed": "trung_sisters.yyci",
+      "prompt": "Use case: stylized-concept. Create ONE finished large landscape 1536x1024 special-skill cut-in illustration for a historical strategy game. Reference image is ONLY the character identity, costume and style reference; preserve the same recognizable adult face, hair, clothing palette, two sisters and high-quality 2D drawing style. This must be NEW dynamic waist-up action key art, not an enlarged portrait. Scene and skill motif: Trung Sisters, BOTH adult Vietnamese warrior sisters together as one command portrait, red and teal head wraps and matching bronze armor, standing back-to-back raising weapons, intertwined jade and crimson ribbons of light, modern clean 2D illustrated historical game art. Composition: character on RIGHT TWO THIRDS, expressive face large and fully inside frame with 8% head clearance, pose and weapon can extend toward center; LEFT THIRD is atmospheric deep navy negative space for titles added by game code. Dramatic light, sharp clear silhouette, skill-colored flowing energy trails, refined premium game illustration. One continuous illustration, no panel or grid. No text, captions, numbers, letters, user interface, watermarks, logos, historical extremist insignia, 3D or CGI. No traditional Japanese painting, ukiyo-e, woodblock or ink wash. Characters adult and fully clothed."
+    },
+    {
+      "id": "lakshmibai",
+      "reference": "../lakshmibai.png",
+      "file": "lakshmibai.png",
+      "packed": "lakshmibai.yyci",
+      "prompt": "Use case: stylized-concept. Create ONE finished large landscape 1536x1024 special-skill cut-in illustration for a historical strategy game. Reference image is ONLY the character identity, costume and style reference; preserve the same recognizable adult face, hair, clothing palette, single character and high-quality 2D drawing style. This must be NEW dynamic waist-up action key art, not an enlarged portrait. Scene and skill motif: Lakshmibai, adult Indian warrior queen wearing red-and-gold turban and richly detailed armor, rallying from horseback with raised curved sword, fiery saffron wind, polished 2D anime cel illustration. Composition: character on RIGHT TWO THIRDS, expressive face large and fully inside frame with 8% head clearance, pose and weapon can extend toward center; LEFT THIRD is atmospheric deep navy negative space for titles added by game code. Dramatic light, sharp clear silhouette, skill-colored flowing energy trails, refined premium game illustration. One continuous illustration, no panel or grid. No text, captions, numbers, letters, user interface, watermarks, logos, historical extremist insignia, 3D or CGI. No traditional Japanese painting, ukiyo-e, woodblock or ink wash. Characters adult and fully clothed."
+    },
+    {
+      "id": "boudica",
+      "reference": "../boudica.png",
+      "file": "boudica.png",
+      "packed": "boudica.yyci",
+      "prompt": "Use case: stylized-concept. Create ONE finished large landscape 1536x1024 special-skill cut-in illustration for a historical strategy game. Reference image is ONLY the character identity, costume and style reference; preserve the same recognizable adult face, hair, clothing palette, single character and high-quality 2D drawing style. This must be NEW dynamic waist-up action key art, not an enlarged portrait. Scene and skill motif: Boudica, adult Celtic warrior queen with long wavy red hair, green cloak and bronze torc, bold spear command beside war-chariot silhouette, green and bronze storm, expressive European comic illustration. Composition: character on RIGHT TWO THIRDS, expressive face large and fully inside frame with 8% head clearance, pose and weapon can extend toward center; LEFT THIRD is atmospheric deep navy negative space for titles added by game code. Dramatic light, sharp clear silhouette, skill-colored flowing energy trails, refined premium game illustration. One continuous illustration, no panel or grid. No text, captions, numbers, letters, user interface, watermarks, logos, historical extremist insignia, 3D or CGI. No traditional Japanese painting, ukiyo-e, woodblock or ink wash. Characters adult and fully clothed."
+    },
+    {
+      "id": "artemisia",
+      "reference": "../artemisia.png",
+      "file": "artemisia.png",
+      "packed": "artemisia.yyci",
+      "prompt": "Use case: stylized-concept. Create ONE finished large landscape 1536x1024 special-skill cut-in illustration for a historical strategy game. Reference image is ONLY the character identity, costume and style reference; preserve the same recognizable adult face, hair, clothing palette, single character and high-quality 2D drawing style. This must be NEW dynamic waist-up action key art, not an enlarged portrait. Scene and skill motif: Artemisia I, adult Greek queen admiral with braided dark hair, laurel and white-blue cloak, resolute command holding a bronze spear, blue sea spray and ship silhouettes, elegant 2D linework comic illustration. Composition: character on RIGHT TWO THIRDS, expressive face large and fully inside frame with 8% head clearance, pose and weapon can extend toward center; LEFT THIRD is atmospheric deep navy negative space for titles added by game code. Dramatic light, sharp clear silhouette, skill-colored flowing energy trails, refined premium game illustration. One continuous illustration, no panel or grid. No text, captions, numbers, letters, user interface, watermarks, logos, historical extremist insignia, 3D or CGI. No traditional Japanese painting, ukiyo-e, woodblock or ink wash. Characters adult and fully clothed."
+    },
+    {
+      "id": "zenobia",
+      "reference": "../zenobia.png",
+      "file": "zenobia.png",
+      "packed": "zenobia.yyci",
+      "prompt": "Use case: stylized-concept. Create ONE finished large landscape 1536x1024 special-skill cut-in illustration for a historical strategy game. Reference image is ONLY the character identity, costume and style reference; preserve the same recognizable adult face, hair, clothing palette, single character and high-quality 2D drawing style. This must be NEW dynamic waist-up action key art, not an enlarged portrait. Scene and skill motif: Zenobia, adult queen in gold circlet and purple royal robes, commanding toward distant desert citadel, amethyst geometric shields and sunlit sand, rich painted 2D historical key art. Composition: character on RIGHT TWO THIRDS, expressive face large and fully inside frame with 8% head clearance, pose and weapon can extend toward center; LEFT THIRD is atmospheric deep navy negative space for titles added by game code. Dramatic light, sharp clear silhouette, skill-colored flowing energy trails, refined premium game illustration. One continuous illustration, no panel or grid. No text, captions, numbers, letters, user interface, watermarks, logos, historical extremist insignia, 3D or CGI. No traditional Japanese painting, ukiyo-e, woodblock or ink wash. Characters adult and fully clothed."
+    },
+    {
+      "id": "tamar",
+      "reference": "../tamar.png",
+      "file": "tamar.png",
+      "packed": "tamar.yyci",
+      "prompt": "Use case: stylized-concept. Create ONE finished large landscape 1536x1024 special-skill cut-in illustration for a historical strategy game. Reference image is ONLY the character identity, costume and style reference; preserve the same recognizable adult face, hair, clothing palette, single character and high-quality 2D drawing style. This must be NEW dynamic waist-up action key art, not an enlarged portrait. Scene and skill motif: Tamar, adult crowned Georgian queen in jeweled medieval robes, raising a benevolent open hand, warm gold light and luminous healing motifs around distant army, luxurious 2D painted illustration. Composition: character on RIGHT TWO THIRDS, expressive face large and fully inside frame with 8% head clearance, pose and weapon can extend toward center; LEFT THIRD is atmospheric deep navy negative space for titles added by game code. Dramatic light, sharp clear silhouette, skill-colored flowing energy trails, refined premium game illustration. One continuous illustration, no panel or grid. No text, captions, numbers, letters, user interface, watermarks, logos, historical extremist insignia, 3D or CGI. No traditional Japanese painting, ukiyo-e, woodblock or ink wash. Characters adult and fully clothed."
+    },
+    {
+      "id": "hua_mulan",
+      "reference": "../hua_mulan.png",
+      "file": "hua_mulan.png",
+      "packed": "hua_mulan.yyci",
+      "prompt": "Use case: stylized-concept. Create ONE finished large landscape 1536x1024 special-skill cut-in illustration for a historical strategy game. Reference image is ONLY the character identity, costume and style reference; preserve the same recognizable adult face, hair, clothing palette, single character and high-quality 2D drawing style. This must be NEW dynamic waist-up action key art, not an enlarged portrait. Scene and skill motif: Hua Mulan, adult Chinese female warrior with dark hair in high bun and red cloak over lamellar armor, drawing a bow while scouting, jade wind streaks and distant hills, sharp modern 2D cel illustration. Composition: character on RIGHT TWO THIRDS, expressive face large and fully inside frame with 8% head clearance, pose and weapon can extend toward center; LEFT THIRD is atmospheric deep navy negative space for titles added by game code. Dramatic light, sharp clear silhouette, skill-colored flowing energy trails, refined premium game illustration. One continuous illustration, no panel or grid. No text, captions, numbers, letters, user interface, watermarks, logos, historical extremist insignia, 3D or CGI. No traditional Japanese painting, ukiyo-e, woodblock or ink wash. Characters adult and fully clothed."
+    },
+    {
+      "id": "tomyris",
+      "reference": "../tomyris.png",
+      "file": "tomyris.png",
+      "packed": "tomyris.yyci",
+      "prompt": "Use case: stylized-concept. Create ONE finished large landscape 1536x1024 special-skill cut-in illustration for a historical strategy game. Reference image is ONLY the character identity, costume and style reference; preserve the same recognizable adult face, hair, clothing palette, single character and high-quality 2D drawing style. This must be NEW dynamic waist-up action key art, not an enlarged portrait. Scene and skill motif: Tomyris, adult Central Asian steppe warrior queen with long braided dark hair, fur-lined leather armor and headband, drawing a curved blade to rally cavalry, bronze-crimson sun flare, detailed 2D painted historical illustration. Composition: character on RIGHT TWO THIRDS, expressive face large and fully inside frame with 8% head clearance, pose and weapon can extend toward center; LEFT THIRD is atmospheric deep navy negative space for titles added by game code. Dramatic light, sharp clear silhouette, skill-colored flowing energy trails, refined premium game illustration. One continuous illustration, no panel or grid. No text, captions, numbers, letters, user interface, watermarks, logos, historical extremist insignia, 3D or CGI. No traditional Japanese painting, ukiyo-e, woodblock or ink wash. Characters adult and fully clothed."
+    },
+    {
+      "id": "alexander",
+      "reference": "../alexander.png",
+      "file": "alexander.png",
+      "packed": "alexander.yyci",
+      "prompt": "Use case: stylized-concept. Create ONE finished large landscape 1536x1024 special-skill cut-in illustration for a historical strategy game. Reference image is ONLY the character identity, costume and style reference; preserve the same recognizable adult face, hair, clothing palette, single character and high-quality 2D drawing style. This must be NEW dynamic waist-up action key art, not an enlarged portrait. Scene and skill motif: Alexander the Great, adult blond Macedonian male conqueror in bronze armor and red cloak, charging command with raised spear, white horse neck at bottom right and gold victory streaks, polished 2D adventure comic. Composition: character on RIGHT TWO THIRDS, expressive face large and fully inside frame with 8% head clearance, pose and weapon can extend toward center; LEFT THIRD is atmospheric deep navy negative space for titles added by game code. Dramatic light, sharp clear silhouette, skill-colored flowing energy trails, refined premium game illustration. One continuous illustration, no panel or grid. No text, captions, numbers, letters, user interface, watermarks, logos, historical extremist insignia, 3D or CGI. No traditional Japanese painting, ukiyo-e, woodblock or ink wash. Characters adult and fully clothed."
+    },
+    {
+      "id": "hannibal",
+      "reference": "../hannibal.png",
+      "file": "hannibal.png",
+      "packed": "hannibal.yyci",
+      "prompt": "Use case: stylized-concept. Create ONE finished large landscape 1536x1024 special-skill cut-in illustration for a historical strategy game. Reference image is ONLY the character identity, costume and style reference; preserve the same recognizable adult face, hair, clothing palette, single character and high-quality 2D drawing style. This must be NEW dynamic waist-up action key art, not an enlarged portrait. Scene and skill motif: Hannibal, adult North African male commander with short dark curly hair and beard, bronze armor and rust-red cloak, commanding an encirclement, sweeping red tactical arcs and war elephant silhouettes, rich 2D historical illustration. Composition: character on RIGHT TWO THIRDS, expressive face large and fully inside frame with 8% head clearance, pose and weapon can extend toward center; LEFT THIRD is atmospheric deep navy negative space for titles added by game code. Dramatic light, sharp clear silhouette, skill-colored flowing energy trails, refined premium game illustration. One continuous illustration, no panel or grid. No text, captions, numbers, letters, user interface, watermarks, logos, historical extremist insignia, 3D or CGI. No traditional Japanese painting, ukiyo-e, woodblock or ink wash. Characters adult and fully clothed."
+    },
+    {
+      "id": "genghis_khan",
+      "reference": "../genghis_khan.png",
+      "file": "genghis_khan.png",
+      "packed": "genghis_khan.yyci",
+      "prompt": "Use case: stylized-concept. Create ONE finished large landscape 1536x1024 special-skill cut-in illustration for a historical strategy game. Reference image is ONLY the character identity, costume and style reference; preserve the same recognizable adult face, hair, clothing palette, single character and high-quality 2D drawing style. This must be NEW dynamic waist-up action key art, not an enlarged portrait. Scene and skill motif: Genghis Khan, adult Mongol male commander with moustache and pointed beard, fur hat and fur-trimmed blue steppe armor, drawing a recurved bow from horseback, cobalt wolf-shaped wind and cavalry silhouettes, polished 2D anime cel illustration. Composition: character on RIGHT TWO THIRDS, expressive face large and fully inside frame with 8% head clearance, pose and weapon can extend toward center; LEFT THIRD is atmospheric deep navy negative space for titles added by game code. Dramatic light, sharp clear silhouette, skill-colored flowing energy trails, refined premium game illustration. One continuous illustration, no panel or grid. No text, captions, numbers, letters, user interface, watermarks, logos, historical extremist insignia, 3D or CGI. No traditional Japanese painting, ukiyo-e, woodblock or ink wash. Characters adult and fully clothed."
+    },
+    {
+      "id": "saladin",
+      "reference": "../saladin.png",
+      "file": "saladin.png",
+      "packed": "saladin.yyci",
+      "prompt": "Use case: stylized-concept. Create ONE finished large landscape 1536x1024 special-skill cut-in illustration for a historical strategy game. Reference image is ONLY the character identity, costume and style reference; preserve the same recognizable adult face, hair, clothing palette, single character and high-quality 2D drawing style. This must be NEW dynamic waist-up action key art, not an enlarged portrait. Scene and skill motif: Saladin, adult bearded Middle Eastern male commander wearing cream turban over mail and green cloak, calm protective sword stance, jade light and golden healing motes, detailed warm 2D painted illustration. Composition: character on RIGHT TWO THIRDS, expressive face large and fully inside frame with 8% head clearance, pose and weapon can extend toward center; LEFT THIRD is atmospheric deep navy negative space for titles added by game code. Dramatic light, sharp clear silhouette, skill-colored flowing energy trails, refined premium game illustration. One continuous illustration, no panel or grid. No text, captions, numbers, letters, user interface, watermarks, logos, historical extremist insignia, 3D or CGI. No traditional Japanese painting, ukiyo-e, woodblock or ink wash. Characters adult and fully clothed."
+    },
+    {
+      "id": "oda_nobunaga",
+      "reference": "../oda_nobunaga.png",
+      "file": "oda_nobunaga.png",
+      "packed": "oda_nobunaga.yyci",
+      "prompt": "Use case: stylized-concept. Create ONE finished large landscape 1536x1024 special-skill cut-in illustration for a historical strategy game. Reference image is ONLY the character identity, costume and style reference; preserve the same recognizable adult face, hair, clothing palette, single character and high-quality 2D drawing style. This must be NEW dynamic waist-up action key art, not an enlarged portrait. Scene and skill motif: Oda Nobunaga, adult Japanese male warlord with black hair topknot and short moustache/goatee, ornate black-red samurai armor, sweeping command fan directing three ranks of matchlocks, red-gold rhythmic muzzle-light streaks, clean 2D anime illustration. Composition: character on RIGHT TWO THIRDS, expressive face large and fully inside frame with 8% head clearance, pose and weapon can extend toward center; LEFT THIRD is atmospheric deep navy negative space for titles added by game code. Dramatic light, sharp clear silhouette, skill-colored flowing energy trails, refined premium game illustration. One continuous illustration, no panel or grid. No text, captions, numbers, letters, user interface, watermarks, logos, historical extremist insignia, 3D or CGI. No traditional Japanese painting, ukiyo-e, woodblock or ink wash. Characters adult and fully clothed."
+    },
+    {
+      "id": "julius_caesar",
+      "reference": "../julius_caesar.png",
+      "file": "julius_caesar.png",
+      "packed": "julius_caesar.yyci",
+      "prompt": "Use case: stylized-concept. Create ONE finished large landscape 1536x1024 special-skill cut-in illustration for a historical strategy game. Reference image is ONLY the character identity, costume and style reference; preserve the same recognizable adult face, hair, clothing palette, single character and high-quality 2D drawing style. This must be NEW dynamic waist-up action key art, not an enlarged portrait. Scene and skill motif: Julius Caesar, adult Roman male commander with short dark hair and laurel crown, red cloak and bronze armor, raising a gladius to command disciplined legion shield wall, crimson-gold geometric light, elegant 2D comic. Composition: character on RIGHT TWO THIRDS, expressive face large and fully inside frame with 8% head clearance, pose and weapon can extend toward center; LEFT THIRD is atmospheric deep navy negative space for titles added by game code. Dramatic light, sharp clear silhouette, skill-colored flowing energy trails, refined premium game illustration. One continuous illustration, no panel or grid. No text, captions, numbers, letters, user interface, watermarks, logos, historical extremist insignia, 3D or CGI. No traditional Japanese painting, ukiyo-e, woodblock or ink wash. Characters adult and fully clothed."
+    },
+    {
+      "id": "subutai",
+      "reference": "../subutai.png",
+      "file": "subutai.png",
+      "packed": "subutai.yyci",
+      "prompt": "Use case: stylized-concept. Create ONE finished large landscape 1536x1024 special-skill cut-in illustration for a historical strategy game. Reference image is ONLY the character identity, costume and style reference; preserve the same recognizable adult face, hair, clothing palette, single character and high-quality 2D drawing style. This must be NEW dynamic waist-up action key art, not an enlarged portrait. Scene and skill motif: Subutai, adult Mongol male general with broad face and dark moustache in fur hat and blue lamellar armor, indicating a wide flanking route with one hand while holding bow, turquoise sweeping wind and distant cavalry, polished 2D anime cel illustration. Composition: character on RIGHT TWO THIRDS, expressive face large and fully inside frame with 8% head clearance, pose and weapon can extend toward center; LEFT THIRD is atmospheric deep navy negative space for titles added by game code. Dramatic light, sharp clear silhouette, skill-colored flowing energy trails, refined premium game illustration. One continuous illustration, no panel or grid. No text, captions, numbers, letters, user interface, watermarks, logos, historical extremist insignia, 3D or CGI. No traditional Japanese painting, ukiyo-e, woodblock or ink wash. Characters adult and fully clothed."
+    },
+    {
+      "id": "takeda_shingen",
+      "reference": "../takeda_shingen.png",
+      "file": "takeda_shingen.png",
+      "packed": "takeda_shingen.yyci",
+      "prompt": "Use case: stylized-concept. Create ONE finished large landscape 1536x1024 special-skill cut-in illustration for a historical strategy game. Reference image is ONLY the character identity, costume and style reference; preserve the same recognizable adult face, hair, clothing palette, single character and high-quality 2D drawing style. This must be NEW dynamic waist-up action key art, not an enlarged portrait. Scene and skill motif: Takeda Shingen, adult Japanese male warlord with prominent moustache and receding hairline in heavy red armor with white fur trim, immovable resolute stance raising a command fan, huge dark mountain silhouette and crimson protective light, polished 2D anime cel illustration. Composition: character on RIGHT TWO THIRDS, expressive face large and fully inside frame with 8% head clearance, pose and weapon can extend toward center; LEFT THIRD is atmospheric deep navy negative space for titles added by game code. Dramatic light, sharp clear silhouette, skill-colored flowing energy trails, refined premium game illustration. One continuous illustration, no panel or grid. No text, captions, numbers, letters, user interface, watermarks, logos, historical extremist insignia, 3D or CGI. No traditional Japanese painting, ukiyo-e, woodblock or ink wash. Characters adult and fully clothed."
+    },
+    {
+      "id": "yi_sun_sin",
+      "reference": "../yi_sun_sin.png",
+      "file": "yi_sun_sin.png",
+      "packed": "yi_sun_sin.yyci",
+      "prompt": "Use case: stylized-concept. Create ONE finished large landscape 1536x1024 special-skill cut-in illustration for a historical strategy game. Reference image is ONLY the character identity, costume and style reference; preserve the same recognizable adult face, hair, clothing palette, single character and high-quality 2D drawing style. This must be NEW dynamic waist-up action key art, not an enlarged portrait. Scene and skill motif: Yi Sun-sin, adult Korean male admiral with moustache and goatee in ornate navy-red period helmet and lamellar armor, pointing command sword across sea, gold crane-wing light and naval cannon silhouettes, polished 2D anime cel illustration. Composition: character on RIGHT TWO THIRDS, expressive face large and fully inside frame with 8% head clearance, pose and weapon can extend toward center; LEFT THIRD is atmospheric deep navy negative space for titles added by game code. Dramatic light, sharp clear silhouette, skill-colored flowing energy trails, refined premium game illustration. One continuous illustration, no panel or grid. No text, captions, numbers, letters, user interface, watermarks, logos, historical extremist insignia, 3D or CGI. No traditional Japanese painting, ukiyo-e, woodblock or ink wash. Characters adult and fully clothed."
+    },
+    {
+      "id": "napoleon",
+      "reference": "../napoleon.png",
+      "file": "napoleon.png",
+      "packed": "napoleon.yyci",
+      "prompt": "Use case: stylized-concept. Create ONE finished large landscape 1536x1024 special-skill cut-in illustration for a historical strategy game. Reference image is ONLY the character identity, costume and style reference; preserve the same recognizable adult face, hair, clothing palette, single character and high-quality 2D drawing style. This must be NEW dynamic waist-up action key art, not an enlarged portrait. Scene and skill motif: Napoleon Bonaparte, adult French male commander in black bicorne and navy-white military uniform with gold epaulettes, one arm raised to direct massed artillery, blue-gold sweeping cannon smoke and dawn, rich 2D historical game illustration. Composition: character on RIGHT TWO THIRDS, expressive face large and fully inside frame with 8% head clearance, pose and weapon can extend toward center; LEFT THIRD is atmospheric deep navy negative space for titles added by game code. Dramatic light, sharp clear silhouette, skill-colored flowing energy trails, refined premium game illustration. One continuous illustration, no panel or grid. No text, captions, numbers, letters, user interface, watermarks, logos, historical extremist insignia, 3D or CGI. No traditional Japanese painting, ukiyo-e, woodblock or ink wash. Characters adult and fully clothed."
+    }
+  ]
+}

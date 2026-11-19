@@ -1,0 +1,23 @@
+// Packed image order is identical to GENERALS and assets/generals/cutins/manifest.json.
+pub(super) const DATA: &[&[u8]] = &[
+    include_bytes!("../assets/generals/cutins/tomoe_gozen.yyci"),
+    include_bytes!("../assets/generals/cutins/joan_of_arc.yyci"),
+    include_bytes!("../assets/generals/cutins/trung_sisters.yyci"),
+    include_bytes!("../assets/generals/cutins/lakshmibai.yyci"),
+    include_bytes!("../assets/generals/cutins/boudica.yyci"),
+    include_bytes!("../assets/generals/cutins/artemisia.yyci"),
+    include_bytes!("../assets/generals/cutins/zenobia.yyci"),
+    include_bytes!("../assets/generals/cutins/tamar.yyci"),
+    include_bytes!("../assets/generals/cutins/hua_mulan.yyci"),
+    include_bytes!("../assets/generals/cutins/tomyris.yyci"),
+    include_bytes!("../assets/generals/cutins/alexander.yyci"),
+    include_bytes!("../assets/generals/cutins/hannibal.yyci"),
+    include_bytes!("../assets/generals/cutins/genghis_khan.yyci"),
+    include_bytes!("../assets/generals/cutins/saladin.yyci"),
+    include_bytes!("../assets/generals/cutins/oda_nobunaga.yyci"),
+    include_bytes!("../assets/generals/cutins/julius_caesar.yyci"),
+    include_bytes!("../assets/generals/cutins/subutai.yyci"),
+    include_bytes!("../assets/generals/cutins/takeda_shingen.yyci"),
+    include_bytes!("../assets/generals/cutins/yi_sun_sin.yyci"),
+    include_bytes!("../assets/generals/cutins/napoleon.yyci"),
+];

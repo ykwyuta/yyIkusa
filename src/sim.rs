@@ -201,6 +201,9 @@ pub struct World {
     cap_warned: [bool; 2],
     /// 指揮権を返還して副官になっている自軍将軍
     pub adjutants: [bool; GENERALS.len()],
+    pub skill_cues: Vec<crate::skill_cutin::SkillCue>,
+    pub(crate) passive_announced: [[bool; GENERALS.len()]; 2],
+    pub(crate) skill_started: [[Option<f32>; GENERALS.len()]; 2],
 }
 
 fn angle_diff(a: f32, b: f32) -> f32 {
@@ -261,6 +264,9 @@ impl World {
             events: Vec::new(),
             cap_warned: [false, false],
             adjutants: [false; GENERALS.len()],
+            skill_cues: Vec::new(),
+            passive_announced: [[false; GENERALS.len()]; 2],
+            skill_started: [[None; GENERALS.len()]; 2],
         }
     }
 
@@ -564,6 +570,8 @@ impl World {
             self.vis_t = 0.25;
             self.update_vis();
         }
+        self.announce_passive_skills();
+        self.update_enemy_skills();
         for i in 0..self.units.len() {
             let previous=self.units[i].pos;
             self.update_unit(i);
@@ -611,9 +619,11 @@ impl World {
         }
         let spec = self.units[i].spec();
         let side = self.units[i].side;
+        let bonuses = self.command_bonuses(&self.units[i]);
         {
             let u = &mut self.units[i];
-            u.reload -= DT;
+            u.hp = (u.hp + spec.hp * bonuses.repair * DT).min(spec.hp);
+            u.reload -= DT * bonuses.fire_rate;
             u.fired += DT;
             u.scan -= DT;
             u.repath -= DT;
@@ -735,6 +745,7 @@ impl World {
 
     /// 目標へ進む。動いたら true
     fn move_toward(&mut self, i: usize, goal: (f32, f32), spec: &TroopSpec) -> bool {
+        let speed_bonus = self.command_bonuses(&self.units[i]).speed;
         let side = self.units[i].side;
         let margin = TS * 0.05;
         let goal = (goal.0.clamp(margin, MW as f32 * TS - margin),
@@ -811,7 +822,7 @@ impl World {
         };
         u.hull = turn_toward(u.hull, a, hrate * DT);
         let align = angle_diff(a, u.hull).cos().max(0.0);
-        let sp = spec.speed * TS * terr.speed(spec.weight).max(0.15) * align * align * DT;
+        let sp = spec.speed * speed_bonus * TS * terr.speed(spec.weight).max(0.15) * align * align * DT;
         let step = sp.min(dist(position, next));
         let hull = u.hull;
         if step <= 0.01 {
@@ -865,14 +876,14 @@ impl World {
 
     fn can_shoot(&self, i: usize, tp: (f32, f32)) -> bool {
         let u = &self.units[i];
-        dist(u.pos, tp) <= u.spec().range * TS && self.map.los(u.tile(), tile_of(tp))
+        dist(u.pos, tp) <= self.effective_range(u) && self.map.los(u.tile(), tile_of(tp))
     }
 
     fn choose_target(&self, i: usize) -> Option<Target> {
         let u = &self.units[i];
         let side = u.side;
         let spec = u.spec();
-        let range = spec.range * TS;
+        let range = self.effective_range(u);
         let mut best: Option<(f32, usize)> = None;
         for (j, e) in self.units.iter().enumerate() {
             if !self.targetable_by(side, j) {
@@ -884,7 +895,7 @@ impl World {
             }
             let mut score = d / range;
             // 正面から抜けない相手は後回し
-            if e.kind == Kind::Troop && spec.pen < e.spec().front * 0.9 {
+            if e.kind == Kind::Troop && spec.pen * self.command_bonuses(u).penetration < e.spec().front * self.command_bonuses(e).armor * 0.9 {
                 score += 0.6;
             }
             if u.target == Some(Target::Unit(j)) {
@@ -915,7 +926,8 @@ impl World {
         };
         let tp = self.target_pos(t);
         let d = dist(pos, tp);
-        let r = (d / (spec.range * TS)).min(1.0);
+        let bonuses = self.command_bonuses(&self.units[i]);
+        let r = (d / self.effective_range(&self.units[i])).min(1.0);
         let melee = spec.range < 2.0;
         let mut acc = (if melee { 0.98 } else { 0.9 - 0.48 * r }) * if moving { 0.55 } else { 1.0 } * self.skill[side];
         let mut hit = None;
@@ -933,9 +945,9 @@ impl World {
                     let mut dmg;
                     let mut pen = true;
                     if e.kind == Kind::Troop {
-                        let armor = e.armor_toward(pos);
-                        let p = spec.pen * (1.0 - 0.3 * r) * self.rng.range(0.8, 1.2);
-                        dmg = spec.dmg * DAMAGE_SCALE * self.rng.range(0.85, 1.15);
+                        let armor = self.effective_armor(e, pos);
+                        let p = spec.pen * bonuses.penetration * (1.0 - 0.3 * r) * self.rng.range(0.8, 1.2);
+                        dmg = spec.dmg * bonuses.damage * DAMAGE_SCALE * self.rng.range(0.85, 1.15);
                         if p < armor {
                             dmg *= 0.12;
                             pen = false;
@@ -948,7 +960,7 @@ impl World {
             }
             Target::Fence(_) => {
                 if self.rng.f32() < (acc * 1.3).min(0.97) {
-                    hit = Some((t, spec.dmg * (spec.pen / 100.0).clamp(0.4, 1.4), true));
+                    hit = Some((t, spec.dmg * bonuses.damage * (spec.pen * bonuses.penetration / 100.0).clamp(0.4, 1.4), true));
                 }
             }
         }
@@ -966,6 +978,39 @@ impl World {
         let u = &mut self.units[i];
         u.reload = spec.reload * self.rng.range(0.95, 1.05);
         u.fired = 0.0;
+    }
+
+    /// Iterative death handling lets opposing revenge skills resolve without recursion or double kills.
+    fn destroy_unit(&mut self, victim: usize, killer: usize) {
+        let mut pending = vec![(victim, killer)];
+        while let Some((victim, killer)) = pending.pop() {
+            if !self.units[victim].alive { continue; }
+            let u = &mut self.units[victim];
+            u.alive = false;
+            u.hp = 0.0;
+            let (pos, side, general) = (u.pos, u.side, u.general);
+            let name = u.spec().name();
+            self.fx.push(Fx { pos, t: 0.0, life: 1.2, kind: FxKind::Boom });
+            self.units[killer].kills += 1;
+            let text = if side == 0 { tf!("自軍の{}が撃破された", "Our {} was destroyed", "我方{}被击毁", name) } else { tf!("敵の{}を撃破", "Enemy {} destroyed", "击毁敌方{}", name) };
+            self.event(side, text, Some(pos));
+            if self.units[victim].kind != Kind::Troop || !general.is_some_and(|id| GENERALS[id].skill.trigger == crate::general_skills::Trigger::Revenge) {
+                continue;
+            }
+            let eligible = |u: &Unit| u.alive && u.side != side && u.kind == Kind::Troop;
+            let target = if eligible(&self.units[killer]) {
+                Some(killer)
+            } else {
+                self.units.iter().enumerate().filter(|(_, u)| eligible(u))
+                    .min_by(|(_, a), (_, b)| dist(pos, a.pos).total_cmp(&dist(pos, b.pos)))
+                    .map(|(i, _)| i)
+            };
+            if let Some(target) = target {
+                self.announce_skill(side, general.unwrap());
+                self.event(side, tf!("{}：{}で敵1体を道連れに！", "{}: {} takes an enemy down!", "{}：{}带走一名敌军！", GENERALS[general.unwrap()].name(), GENERALS[general.unwrap()].skill.name()), Some(pos));
+                pending.push((target, victim));
+            }
+        }
     }
 
     fn update_shells(&mut self) {
@@ -1000,15 +1045,7 @@ impl World {
                     }
                     self.units[j].hp -= dmg;
                     if self.units[j].hp <= 0.0 {
-                        self.units[j].alive = false;
-                        self.units[j].hp = 0.0;
-                        let pos = self.units[j].pos;
-                        self.fx.push(Fx { pos, t: 0.0, life: 1.2, kind: FxKind::Boom });
-                        self.units[s.shooter].kills += 1;
-                        let side = self.units[j].side;
-                        let name = self.units[j].spec().name();
-                        let text = if side == 0 { tf!("自軍の{}が撃破された", "Our {} was destroyed", "我方{}被击毁", name) } else { tf!("敵の{}を撃破", "Enemy {} destroyed", "击毁敌方{}", name) };
-                        self.event(side, text, Some(pos));
+                        self.destroy_unit(j, s.shooter);
                     }
                 }
                 Some((Target::Fence(k2), dmg, _)) => {
@@ -1100,7 +1137,7 @@ impl World {
                         }
                     }
                     _ => {
-                        let r = u.spec().sight + if self.map.at(cx, cy) == Terrain::Hill { 3.0 } else { 0.0 };
+                        let r = u.spec().sight * self.command_bonuses(u).sight + if self.map.at(cx, cy) == Terrain::Hill { 3.0 } else { 0.0 };
                         let r = if u.kind == Kind::Decoy { 0.0 } else { r };
                         let ri = r.ceil() as i32;
                         for y in cy - ri..=cy + ri {
@@ -1150,7 +1187,7 @@ impl World {
                     o.alive
                         && o.side == side
                         && match o.kind {
-                            Kind::Troop => dist(o.pos, e.pos) <= o.spec().sight * 0.45 * TS && self.map.los(o.tile(), (tx, ty)),
+                            Kind::Troop => dist(o.pos, e.pos) <= o.spec().sight * self.command_bonuses(o).sight * 0.45 * TS && self.map.los(o.tile(), (tx, ty)),
                             Kind::Hawk => dist(o.pos, e.pos) <= 4.0 * TS,
                             Kind::Decoy => false,
                         }
@@ -1263,6 +1300,205 @@ mod tests {
             }
         }
         panic!("no spot");
+    }
+
+    fn skill_id(trigger: crate::general_skills::Trigger) -> usize {
+        GENERALS.iter().position(|g| g.skill.trigger == trigger).unwrap()
+    }
+
+    fn skill_world() -> World {
+        let mut w = world();
+        w.map.t.fill(Terrain::Plain);
+        w.units.push(World::new_unit(0, Kind::Troop, Nation::Roster, 0, center((10, 20))));
+        w.units.push(World::new_unit(1, Kind::Troop, Nation::Roster, 0, center((11, 20))));
+        w.phase = Phase::Battle;
+        w.update_vis();
+        w
+    }
+
+    #[test]
+    fn command_skill_once_lasts_exactly_five_minutes_and_survives_redelegation() {
+        use crate::general_skills::{Bonuses, Trigger};
+        let mut w = skill_world();
+        let id = skill_id(Trigger::Once);
+        assert!(!w.activate_skill(0, id)); // No commanded troops.
+        w.units[0].general = Some(id);
+        w.phase = Phase::Prep;
+        assert!(!w.activate_skill(0, id));
+        w.phase = Phase::Battle;
+        w.time = 20.0;
+        assert!(w.activate_skill(0, id));
+        assert!(!w.activate_skill(0, id));
+        assert!(!w.activate_skill(2, id));
+        assert!(!w.activate_skill(0, GENERALS.len()));
+        assert_eq!(w.command_bonuses(&w.units[0]).damage, 1.5);
+        w.time = 319.99;
+        assert_eq!(w.command_bonuses(&w.units[0]).damage, 1.5);
+        assert_eq!(w.return_general_command(id), vec![0]);
+        assert_eq!(w.command_bonuses(&w.units[0]), Bonuses::NONE);
+        assert!(w.delegate_in_battle(0, Some(id)));
+        assert!(!w.activate_skill(0, id));
+        assert_eq!(w.command_bonuses(&w.units[0]).damage, 1.5);
+        w.time = 320.0;
+        assert_eq!(w.command_bonuses(&w.units[0]), Bonuses::NONE);
+        assert_eq!(w.skill_remaining(0, id), Some(0.0));
+        assert!(!w.activate_skill(0, id));
+        // Opposing armies have independent uses of the same general's skill.
+        w.units[1].general = Some(id);
+        assert!(w.activate_skill(1, id));
+        assert_eq!(w.skill_remaining(1, id), Some(300.0));
+        assert_eq!(skill_world().skill_remaining(0, id), None);
+    }
+
+    #[test]
+    fn command_skill_damage_reaches_projectiles_and_expires_without_stacking() {
+        use crate::general_skills::Trigger;
+        fn damage(w: &mut World) -> f32 {
+            w.rng = Rng::new(789);
+            w.skill[0] = 100.0; // Isolate damage from hit probability.
+            w.shells.clear();
+            w.fire(0, Target::Unit(1));
+            w.shells.last().unwrap().hit.unwrap().1
+        }
+        let mut w = skill_world();
+        let base = damage(&mut w);
+        let id = skill_id(Trigger::Once);
+        w.units[0].general = Some(id);
+        assert_eq!(damage(&mut w), base);
+        assert!(w.activate_skill(0, id));
+        assert!((damage(&mut w) / base - 1.5).abs() < 0.0001);
+        w.time = 300.0;
+        assert_eq!(damage(&mut w), base);
+    }
+
+    #[test]
+    fn command_skill_speed_and_range_change_actual_movement_and_targeting() {
+        let id = GENERALS.iter().position(|g| g.skill.bonuses.speed == 1.5 && g.skill.bonuses.range == 1.2).unwrap();
+        let mut w = skill_world();
+        let origin = w.units[0].pos;
+        let spec = w.units[0].spec();
+        w.units[1].pos = (origin.0 + spec.range * TS * 1.1, origin.1);
+        w.update_vis();
+        // Explicitly mark the enemy visible: this test isolates weapon range from sight.
+        w.spotted[0][1] = true;
+        assert!(!w.can_shoot(0, w.units[1].pos));
+        assert_eq!(w.choose_target(0), None);
+        let goal = center((20, 20));
+        w.move_toward(0, goal, spec);
+        let normal = dist(origin, w.units[0].pos);
+        w.units[0].pos = origin;
+        w.units[0].general = Some(id);
+        assert!(w.can_shoot(0, w.units[1].pos));
+        assert_eq!(w.choose_target(0), Some(Target::Unit(1)));
+        assert!((w.effective_range(&w.units[0]) / (spec.range * TS) - 1.2).abs() < 0.0001);
+        w.move_toward(0, goal, spec);
+        assert!((dist(origin, w.units[0].pos) / normal - 1.5).abs() < 0.001);
+        w.delegate_in_battle(0, None);
+        assert!(!w.can_shoot(0, w.units[1].pos));
+    }
+
+    #[test]
+    fn command_skill_repair_fire_rate_and_armor_use_current_commander_only() {
+        let mut w = skill_world();
+        let repair = GENERALS.iter().position(|g| g.skill.bonuses.repair > 0.0).unwrap();
+        w.units[0].general = Some(repair);
+        w.units[0].hp = w.units[0].spec().hp * 0.5;
+        w.update_unit(0);
+        assert!(w.units[0].hp > w.units[0].spec().hp * 0.5);
+        w.units[0].hp = w.units[0].spec().hp;
+        w.update_unit(0);
+        assert_eq!(w.units[0].hp, w.units[0].spec().hp);
+        let rapid = GENERALS.iter().position(|g| g.skill.bonuses.fire_rate == 1.5).unwrap();
+        w.delegate_in_battle(0, Some(rapid));
+        w.units[0].reload = 10.0;
+        w.update_unit(0);
+        assert!((w.units[0].reload - (10.0 - DT * 1.5)).abs() < 0.0001);
+        let armor = GENERALS.iter().position(|g| g.skill.bonuses.armor > 1.0).unwrap();
+        w.delegate_in_battle(0, Some(armor));
+        let from = w.units[1].pos;
+        assert_eq!(w.effective_armor(&w.units[0], from), w.units[0].armor_toward(from) * GENERALS[armor].skill.bonuses.armor);
+        w.delegate_in_battle(0, None);
+        assert_eq!(w.effective_armor(&w.units[0], from), w.units[0].armor_toward(from));
+    }
+
+    #[test]
+    fn command_skill_revenge_triggers_through_damage_and_counts_each_kill_once() {
+        let mut w = skill_world();
+        w.units[0].general = Some(skill_id(crate::general_skills::Trigger::Revenge));
+        let pos = w.units[0].pos;
+        let hp = w.units[0].hp;
+        for _ in 0..2 {
+            w.shells.push(Shell { from: w.units[1].pos, to: pos, t: 0.0, dur: 0.0,
+                side: 1, shooter: 1, hit: Some((Target::Unit(0), hp + 1.0, true)), big: false });
+        }
+        w.update_shells();
+        assert_eq!(w.skill_cues, vec![crate::skill_cutin::SkillCue {
+            side: 0, general: skill_id(crate::general_skills::Trigger::Revenge),
+        }]);
+        assert!(!w.units[0].alive && !w.units[1].alive);
+        assert_eq!(w.units[0].kills, 1);
+        assert_eq!(w.units[1].kills, 1);
+        w.check_end();
+        assert!(w.draw);
+        assert_eq!(w.reason, Some(EndReason::Annihilation));
+    }
+
+    #[test]
+    fn command_skill_revenge_falls_back_to_combat_units_and_chains_finitely() {
+        let mut w = skill_world();
+        let id = skill_id(crate::general_skills::Trigger::Revenge);
+        // Three revenge units on each side, plus closer decoys and scouts.
+        w.units.clear();
+        for i in 0..6 {
+            let mut u = World::new_unit(i % 2, Kind::Troop, Nation::Roster, 0, center((10 + i as i32, 20)));
+            u.general = Some(id);
+            w.units.push(u);
+        }
+        w.units.push(World::new_unit(1, Kind::Decoy, Nation::Roster, 0, center((10, 20))));
+        w.units.push(World::new_unit(1, Kind::Hawk, Nation::Roster, 0, center((10, 20))));
+        w.destroy_unit(0, 1);
+        assert!(w.units[..6].iter().all(|u| !u.alive && u.hp == 0.0));
+        assert_eq!(w.units[..6].iter().map(|u| u.kills).sum::<u32>(), 6);
+        assert!(w.units[6].alive && w.units[7].alive);
+        w.destroy_unit(0, 1);
+        assert_eq!(w.units[..6].iter().map(|u| u.kills).sum::<u32>(), 6);
+    }
+
+    #[test]
+    fn command_skill_enemy_activates_on_contact_without_spending_player_use() {
+        let mut w = skill_world();
+        let id = skill_id(crate::general_skills::Trigger::Once);
+        w.units[0].general = Some(id);
+        w.units[1].general = Some(id);
+        w.spotted[1].fill(false);
+        w.update_enemy_skills();
+        assert_eq!(w.skill_remaining(1, id), None);
+        w.spotted[1][0] = true;
+        w.step();
+        assert!(w.skill_remaining(1, id).is_some());
+        assert_eq!(w.skill_remaining(0, id), None);
+    }
+
+    #[test]
+    fn command_skill_scouting_expands_visibility_without_affecting_direct_units_or_decoys() {
+        use crate::general_skills::Bonuses;
+        let mut w = skill_world();
+        let id = GENERALS.iter().position(|g| g.skill.bonuses.sight >= 1.4).unwrap();
+        let base_sight = w.units[0].spec().sight;
+        w.units[1].pos = (w.units[0].pos.0 + base_sight * TS * 1.2, w.units[0].pos.1);
+        w.update_vis();
+        assert!(!w.spotted[0][1]);
+        w.units[0].general = Some(id);
+        w.update_vis();
+        assert!(w.spotted[0][1]);
+        assert_eq!(w.command_bonuses(&w.units[1]), Bonuses::NONE);
+        w.units[0].kind = Kind::Decoy;
+        assert_eq!(w.command_bonuses(&w.units[0]), Bonuses::NONE);
+        w.units[0].kind = Kind::Hawk;
+        assert_eq!(w.command_bonuses(&w.units[0]), Bonuses::NONE);
+        w.units[0].kind = Kind::Troop;
+        w.units[0].alive = false;
+        assert_eq!(w.command_bonuses(&w.units[0]), Bonuses::NONE);
     }
 
     #[test]

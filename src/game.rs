@@ -119,6 +119,8 @@ enum Act {
     Generals,
     AssignGeneral(Option<usize>),
     ReturnGeneral(usize),
+    ActivateSkill(usize),
+    SkipCutin,
     DelegateSelected(usize),
     GeneralFocus((i32, i32)),
     Pause,
@@ -157,6 +159,8 @@ pub struct Game {
     general_command: GeneralCommand,
     enemy_general_command: GeneralCommand,
     radio: Radio,
+    cutins: crate::skill_cutin::Cutins,
+    cutin_art: Option<(usize, Bitmap)>,
     show_generals: bool,
     assign_to: Option<usize>,
     portraits: [Option<Bitmap>; GENERALS.len()],
@@ -240,6 +244,8 @@ impl Game {
             general_command: GeneralCommand::default(),
             enemy_general_command: GeneralCommand::new(1),
             radio: Radio::default(),
+            cutins: crate::skill_cutin::Cutins::default(),
+            cutin_art: None,
             show_generals: false,
             assign_to: Some(0),
             portraits: std::array::from_fn(|_| None),
@@ -366,6 +372,7 @@ impl Game {
         self.general_command = GeneralCommand::default();
         self.enemy_general_command = GeneralCommand::new(1);
         self.radio = Radio::default();
+        self.cutins = crate::skill_cutin::Cutins::default();
         self.show_generals = false;
         self.assign_to = Some(0);
         self.ldown = None;
@@ -456,6 +463,10 @@ impl Game {
                 self.world.step();
             }
             self.radio.update(&self.world, dt, !running);
+            self.cutins.update(if self.show_help { 0.0 } else { dt });
+            for cue in std::mem::take(&mut self.world.skill_cues) {
+                self.cutins.push(cue);
+            }
             for e in std::mem::take(&mut self.world.events) {
                 if let Some(p) = e.pos {
                     self.pings.push((p, 0.0));
@@ -736,6 +747,8 @@ impl Game {
             0x1b => {
                 if self.show_help {
                     self.show_help = false;
+                } else if self.cutins.current().is_some() {
+                    self.cutins.skip();
                 } else if self.show_generals {
                     self.act(Act::Generals);
                 } else if self.attack_mode {
@@ -1047,6 +1060,10 @@ impl Game {
             {
                 self.assign_to = id;
             }
+            Act::SkipCutin => self.cutins.skip(),
+            Act::ActivateSkill(id) => {
+                self.world.activate_skill(0, id);
+            }
             Act::ReturnGeneral(id) if self.world.phase == Phase::Battle => {
                 let freed = self.world.return_general_command(id);
                 if !freed.is_empty() {
@@ -1120,6 +1137,7 @@ impl Game {
             Act::Menu => {
                 if self.menu_confirm > 0.0 || self.world.phase == Phase::Over {
                     self.screen = Screen::Title;
+                    self.cutins = crate::skill_cutin::Cutins::default();
                     self.regen_preview();
                 } else {
                     self.menu_confirm = 3.0;
@@ -1159,6 +1177,7 @@ impl Game {
             }
             Act::ToTitle => {
                 self.screen = Screen::Title;
+                self.cutins = crate::skill_cutin::Cutins::default();
                 self.regen_preview();
             }
         }
@@ -1205,6 +1224,9 @@ impl Game {
                 if self.world.phase == Phase::Over {
                     self.render_over();
                 }
+            }
+            if self.screen == Screen::Battle && !self.show_help {
+                self.render_skill_cutin();
             }
             if let Some((s, t)) = &self.notice {
                 let (s, a) = (s.clone(), t.min(1.0));
@@ -1882,11 +1904,68 @@ impl Game {
     fn refresh_portrait_cache(&mut self) {
         if self.portrait_gen != Some(self.gfx.d2d_gen) {
             self.portraits.fill_with(|| None);
+            self.cutin_art = None;
             for faces in &mut self.expressions {
                 faces.fill_with(|| None);
             }
             self.portrait_gen = Some(self.gfx.d2d_gen);
         }
+    }
+
+    fn render_skill_cutin(&mut self) {
+        let Some((cue, elapsed)) = self.cutins.current() else { return };
+        self.refresh_portrait_cache();
+        if self.cutin_art.as_ref().is_none_or(|(id, _)| *id != cue.general) {
+            if let Some((w, h, pixels)) = crate::skill_cutin::art(cue.general) {
+                if let Some((id, image)) = &mut self.cutin_art {
+                    // Reuse one bitmap: the browser retains canvas handles, so allocating per activation would leak.
+                    self.gfx.update_bitmap(image, w, &pixels);
+                    *id = cue.general;
+                } else {
+                    self.cutin_art = self.gfx.create_bitmap(w, h, &pixels).map(|image| (cue.general, image));
+                }
+            }
+        }
+        let (w, h) = (self.gfx.width as f32, self.gfx.height as f32);
+        let duration = cue.duration();
+        let fade = (elapsed / 0.16).min((duration - elapsed) / 0.22).clamp(0.0, 1.0);
+        let slide = (1.0 - (elapsed / 0.24).clamp(0.0, 1.0)).powi(3) * 64.0;
+        let width = (w - 28.0).min(1120.0);
+        let height = (h * 0.64).min(490.0).min(width / 1.5);
+        let left = (w - width) / 2.0 + if cue.side == 0 { slide } else { -slide };
+        let top = (h - height) / 2.0;
+        let right = left + width;
+        let bottom = top + height;
+        let accent = if cue.side == 1 { RED } else { GOLD };
+        self.gfx.fill_rect(0.0, 0.0, w, h, [0.0, 0.0, 0.0, 0.22 * fade]);
+        self.gfx.fill_rect(left, top, right, bottom, [0.025, 0.045, 0.08, 0.98 * fade]);
+        if let Some((_, image)) = &self.cutin_art {
+            let image_width = height * 1.5;
+            self.gfx.draw_bitmap_alpha(image, right - image_width, top, right, bottom, fade);
+        }
+        // A dark feathered text area keeps the generated image and title legible at every viewport size.
+        let tw = (width * 0.46).min(440.0);
+        for k in 0..64 {
+            let x0 = left + width * 0.16 + k as f32 * tw / 64.0;
+            self.gfx.fill_rect(x0, top, x0 + tw / 64.0, bottom,
+                [0.02, 0.035, 0.06, (0.72 * (1.0 - k as f32 / 64.0)) * fade]);
+        }
+        self.gfx.fill_rect(left, top, right, top + 3.0, with_a(accent, fade));
+        self.gfx.fill_rect(left, bottom - 3.0, right, bottom, with_a(accent, fade));
+        let x = left + 22.0;
+        let text_width = (width * 0.43 - 28.0).max(140.0);
+        let heading = if cue.side == 0 { t!("固有スキル発動", "SIGNATURE SKILL", "专属技能发动") }
+            else { t!("敵将軍・固有スキル", "ENEMY SIGNATURE SKILL", "敌将专属技能") };
+        self.gfx.text(heading, x, top + height * 0.20, text_width, 24.0, Font::Big, with_a(accent, fade));
+        let general = &GENERALS[cue.general];
+        self.gfx.text(general.name(), x, top + height * 0.33, text_width, 44.0, Font::Big, with_a(TEXT, fade));
+        self.gfx.text(general.skill.name(), x, top + height * 0.49, text_width, 72.0,
+            if width >= 700.0 { Font::TitleMid } else { Font::Big }, with_a(accent, fade));
+        self.gfx.text(t!("クリック／Escで閉じる", "Click / Esc to dismiss", "点击／Esc关闭"),
+            x, bottom - 33.0, text_width, 22.0, Font::Small, with_a(DIM, fade));
+        let r = [left, top, right, bottom];
+        self.panels.push(r);
+        self.buttons.push(Btn { r, act: Act::SkipCutin });
     }
 
     fn render_general_report(&mut self) {
@@ -1978,7 +2057,7 @@ impl Game {
         }
         let grid_top = top + 61.0;
         let footer = bottom - 45.0;
-        let details = footer - 94.0;
+        let details = footer - 138.0;
         let gap = 5.0;
         let columns = 6;
         let rows = GENERALS.len().div_ceil(columns);
@@ -2029,8 +2108,25 @@ impl Game {
         self.gfx.text(&header, x, details, inner, 22.0, Font::Big, GOLD);
         if let Some(i) = self.assign_to {
             let strategy = GENERALS[i].strategy;
-            self.gfx.text(strategy.name(), x, details + 23.0, inner, 19.0, Font::Normal, strategy.color());
-            self.gfx.text(strategy.description(), x, details + 44.0, inner, 33.0, Font::Small, TEXT);
+            let skill = &GENERALS[i].skill;
+            let label = format!("{} · {}", strategy.name(), skill.name());
+            self.gfx.text(&label, x, details + 23.0, inner, 19.0, Font::Normal, strategy.color());
+            self.gfx.text(&skill.description(), x, details + 44.0, inner, 49.0, Font::Small, TEXT);
+            if skill.trigger == crate::general_skills::Trigger::Once {
+                if self.world.can_activate_skill(0, i) {
+                    self.button([x, details + 98.0, x + inner, details + 128.0],
+                        t!("固有スキル発動（1戦1回）", "Activate skill (once per battle)", "发动专属技能（每战一次）"), Act::ActivateSkill(i), true);
+                } else {
+                    let state = match self.world.skill_remaining(0, i) {
+                        Some(t) if t > 0.0 => tf!("発動中：残り {}秒", "Active: {}s remaining", "生效中：剩余 {}秒", t.ceil() as u32),
+                        Some(_) => t!("使用済み", "Already used", "已使用").to_string(),
+                        None => t!("戦闘中、部隊を委任すると発動できます", "Assign units during battle to activate", "战斗中委任部队后可发动").to_string(),
+                    };
+                    self.gfx.text(&state, x, details + 98.0, inner, 28.0, Font::Small, GOLD);
+                }
+            } else {
+                self.gfx.text(strategy.description(), x, details + 98.0, inner, 28.0, Font::Small, DIM);
+            }
         } else {
             self.gfx.text(t!("指定した部隊は開戦後も自分で操作します。", "Marked troops remain under your manual control in battle.", "标记的部队在开战后仍由你直接控制。"),
                 x, details + 23.0, inner, 34.0, Font::Small, TEXT);
@@ -2501,6 +2597,49 @@ fn draw_hawk(g: &mut Gfx, u: &Unit, clock: f32) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Renders the production cut-in into a hidden swapchain, without driving any desktop UI.
+    #[cfg(windows)]
+    #[test]
+    #[ignore = "requires a Windows graphics device; saves cut-in screenshots for visual QA"]
+    fn skill_cutin_preview() {
+        use windows::core::w;
+        use windows::Win32::UI::WindowsAndMessaging::*;
+        struct PreviewWindow(windows::Win32::Foundation::HWND);
+        impl Drop for PreviewWindow {
+            fn drop(&mut self) { unsafe { let _ = DestroyWindow(self.0); } }
+        }
+        crate::lang::set_lang(crate::lang::Lang::Ja);
+        let destination = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("target/skill-cutin-preview");
+        std::fs::create_dir_all(&destination).unwrap();
+        for (width, height) in [(1280, 720), (900, 540)] {
+            let hwnd = unsafe { CreateWindowExW(WINDOW_EX_STYLE::default(), w!("STATIC"), w!("Cut-in render test"), WS_POPUP,
+                0, 0, width, height, None, None, None, None).unwrap() };
+            let _window = PreviewWindow(hwnd);
+            let gfx = Gfx::new(hwnd, width as u32, height as u32).unwrap();
+            let mut game = Game::new(gfx);
+            game.screen = Screen::Battle;
+            for general in [1, 12, 0] {
+                game.cutins = crate::skill_cutin::Cutins::default();
+                game.cutins.push(crate::skill_cutin::SkillCue { side: if general == 0 { 1 } else { 0 }, general });
+                for _ in 0..3 { game.cutins.update(0.1); }
+                game.gfx.begin([0.08, 0.09, 0.07, 1.0]);
+                assert!(game.gfx.d2d_begin());
+                game.render_skill_cutin();
+                game.gfx.d2d_end();
+                let path = destination.join(format!("general-{}-{}x{}.bmp", general, width, height));
+                game.gfx.save_backbuffer(path.to_str().unwrap()).unwrap();
+                assert!(path.metadata().unwrap().len() > 100_000);
+                assert!(game.cutin_art.as_ref().is_some_and(|(id, _)| *id == general));
+                game.show_generals = true;
+                let time = game.world.time;
+                game.key(0x1b, true);
+                assert!(game.cutins.current().is_none());
+                assert!(game.show_generals); // Esc dismisses the cinematic, preserving the command panel.
+                assert_eq!(game.world.time, time);
+            }
+        }
+    }
 
     #[test]
     fn delegation_trace_catches_units_between_pointer_events() {
