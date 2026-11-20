@@ -204,6 +204,7 @@ pub struct World {
     pub commander_skill: crate::commander_skills::CommanderState,
     pub skill_cues: Vec<crate::skill_cutin::SkillCue>,
     pub(crate) passive_announced: [[bool; GENERALS.len()]; 2],
+    pub(crate) revenge_used: [[u8; GENERALS.len()]; 2],
     pub(crate) skill_started: [[Option<f32>; GENERALS.len()]; 2],
 }
 
@@ -268,6 +269,7 @@ impl World {
             commander_skill: crate::commander_skills::CommanderState::default(),
             skill_cues: Vec::new(),
             passive_announced: [[false; GENERALS.len()]; 2],
+            revenge_used: [[0; GENERALS.len()]; 2],
             skill_started: [[None; GENERALS.len()]; 2],
         }
     }
@@ -756,7 +758,28 @@ impl World {
         let gt = tile_of(goal);
         let cur = self.units[i].tile();
         if self.units[i].repath <= 0.0 {
-            let p = self.map.path(cur, gt, spec.weight, &self.extra_cost(side));
+            // Friendly traffic is a soft cost: prefer open lanes without blocking
+            // the only route through a bridge or a crowded destination.
+            let mut traffic = vec![0.0; (MW * MH) as usize];
+            for (j, other) in self.units.iter().enumerate() {
+                if j == i || !other.alive || other.side != side || other.kind != Kind::Troop {
+                    continue;
+                }
+                let (x, y) = other.tile();
+                let cost = if other.moving { 0.8 } else { 4.0 };
+                traffic[idx(x, y)] += cost;
+                for (dx, dy) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
+                    if inside(x + dx, y + dy) {
+                        traffic[idx(x + dx, y + dy)] += cost * 0.25;
+                    }
+                }
+            }
+            let p = {
+                let extra = self.extra_cost(side);
+                self.map.path(cur, gt, spec.weight, &|x, y| {
+                    extra(x, y).map(|cost| cost + if (x, y) == gt { 0.0 } else { traffic[idx(x, y)] })
+                })
+            };
             let u = &mut self.units[i];
             if p.is_empty() && cur != gt {
                 if matches!(u.order, Order::Move { .. }) {
@@ -858,8 +881,9 @@ impl World {
             .min_by(|a, b| a.0.total_cmp(&b.0))
             .map(|(_, across, obstacle)| (obstacle, across))?;
         let preferred = if offset < -TS * 0.10 { 1.0 } else { -1.0 };
-        for sign in [preferred, -preferred] {
-            let shift = sign * TS * 0.88;
+        // Keep the preferred passing side even when only a narrow lane fits.
+        for (sign, width) in [(preferred, 0.88), (preferred, 0.42), (-preferred, 0.88), (-preferred, 0.42)] {
+            let shift = sign * TS * width;
             let goal = (obstacle.0 + lateral.0 * shift, obstacle.1 + lateral.1 * shift);
             let angle = (goal.1 - pos.1).atan2(goal.0 - pos.0);
             let near = (pos.0 + angle.cos() * TS * 0.5, pos.1 + angle.sin() * TS * 0.5);
@@ -997,7 +1021,7 @@ impl World {
             self.units[killer].kills += 1;
             let text = if side == 0 { tf!("自軍の{}が撃破された", "Our {} was destroyed", "我方{}被击毁", name) } else { tf!("敵の{}を撃破", "Enemy {} destroyed", "击毁敌方{}", name) };
             self.event(side, text, Some(pos));
-            if self.units[victim].kind != Kind::Troop || !general.is_some_and(|id| GENERALS[id].skill.trigger == crate::general_skills::Trigger::Revenge) {
+            if self.units[victim].kind != Kind::Troop || !general.is_some_and(|id| self.revenge_remaining(side, id) > 0) {
                 continue;
             }
             let eligible = |u: &Unit| u.alive && u.side != side && u.kind == Kind::Troop;
@@ -1009,6 +1033,8 @@ impl World {
                     .map(|(i, _)| i)
             };
             if let Some(target) = target {
+                // Only an actual enemy taken down spends a charge; the pool survives delegation changes.
+                self.revenge_used[side][general.unwrap()] += 1;
                 self.announce_skill(side, general.unwrap());
                 self.event(side, tf!("{}：{}で敵1体を道連れに！", "{}: {} takes an enemy down!", "{}：{}带走一名敌军！", GENERALS[general.unwrap()].name(), GENERALS[general.unwrap()].skill.name()), Some(pos));
                 pending.push((target, victim));
@@ -1479,6 +1505,66 @@ mod tests {
     }
 
     #[test]
+    fn revenge_five_uses_are_shared_by_troops_and_survive_command_return() {
+        let mut w = skill_world();
+        let id = skill_id(crate::general_skills::Trigger::Revenge);
+        w.units.clear();
+        for i in 0..6 {
+            let mut own = World::new_unit(0, Kind::Troop, Nation::Roster, 0, center((10+i,20)));
+            own.general = Some(id);
+            w.units.push(own);
+            w.units.push(World::new_unit(1, Kind::Troop, Nation::Roster, 0, center((30+i,20))));
+        }
+        for i in 0..6 {
+            w.destroy_unit(i*2, i*2+1);
+            assert!(!w.units[i*2].alive);
+            assert_eq!(w.units[i*2+1].alive, i >= 5, "Only five enemies can be taken down");
+            assert_eq!(w.revenge_remaining(0,id), 5u8.saturating_sub((i+1) as u8));
+            assert_eq!(w.revenge_remaining(1,id), 5, "The enemy has a separate pool");
+            if i == 1 {
+                let freed = w.return_general_command(id);
+                assert_eq!(freed.len(),4);
+                for index in freed { assert!(w.delegate_in_battle(index,Some(id))); }
+                assert_eq!(w.revenge_remaining(0,id),3);
+            }
+        }
+        assert_eq!(w.units.iter().map(|u|u.kills).sum::<u32>(),11);
+        assert_eq!(skill_world().revenge_remaining(0,id),5, "A new battle gets a fresh pool");
+    }
+
+    #[test]
+    fn revenge_chain_respects_both_armies_five_use_limits() {
+        let mut w = skill_world();
+        let id = skill_id(crate::general_skills::Trigger::Revenge);
+        w.units.clear();
+        for i in 0..14 {
+            let mut u = World::new_unit(i%2,Kind::Troop,Nation::Roster,0,center((10+i as i32,20)));
+            u.general = Some(id);w.units.push(u);
+        }
+        w.destroy_unit(0,1);
+        assert_eq!(w.revenge_remaining(0,id),0);
+        assert_eq!(w.revenge_remaining(1,id),0);
+        assert_eq!(w.units.iter().filter(|u|!u.alive).count(),11);
+        assert_eq!(w.units.iter().filter(|u|u.alive).count(),3);
+        assert_eq!(w.units.iter().map(|u|u.kills).sum::<u32>(),11);
+        w.destroy_unit(0,1);
+        assert_eq!(w.units.iter().map(|u|u.kills).sum::<u32>(),11);
+    }
+
+    #[test]
+    fn revenge_without_an_eligible_enemy_does_not_spend_a_use() {
+        let mut w = skill_world();
+        let id = skill_id(crate::general_skills::Trigger::Revenge);
+        w.units[0].general = Some(id);
+        w.units[1].alive = false;
+        w.destroy_unit(0,1);
+        assert_eq!(w.revenge_remaining(0,id),5);
+        assert!(w.skill_cues.is_empty());
+        assert_eq!(w.revenge_remaining(2,id),0);
+        assert_eq!(w.revenge_remaining(0,GENERALS.len()),0);
+    }
+
+    #[test]
     fn command_skill_enemy_activates_on_contact_without_spending_player_use() {
         let mut w = skill_world();
         let id = skill_id(crate::general_skills::Trigger::Once);
@@ -1742,3 +1828,7 @@ mod tests {
         assert!(w.units[d].revealed || !w.map.los(w.units[me].tile(), w.units[d].tile()));
     }
 }
+
+#[cfg(test)]
+#[path = "traffic_tests.rs"]
+mod traffic_tests;

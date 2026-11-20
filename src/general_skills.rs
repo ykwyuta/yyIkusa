@@ -5,6 +5,8 @@ use crate::map::TS;
 use crate::sim::{dist, Kind, Phase, Unit, World};
 
 pub const SKILL_DURATION: f32 = 300.0;
+/// Successful revenge activations per general, per army, per battle.
+pub const REVENGE_USES: u8 = 5;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Bonuses {
@@ -52,11 +54,12 @@ impl Skill {
 
     pub fn description(&self) -> String {
         if self.trigger == Trigger::Revenge {
-            return t!(
-                "配下が撃破されるたび、撃破した敵1体を道連れにする。敵が既に死亡している場合は最寄りの敵戦闘部隊。",
-                "Each lost unit takes its killer with it; if already dead, the nearest enemy combat unit instead.",
-                "每名麾下阵亡时带走击杀者；若其已死，则带走最近的敌方战斗部队。"
-            ).to_string();
+            return tf!(
+                "1戦{}回まで・将軍ごとに共有。配下の撃破時に撃破した敵1体を道連れ。敵が既に死亡していれば最寄りの敵戦闘部隊。",
+                "{} uses per general per battle, shared by all commanded units. Each loss takes its killer, or the nearest enemy combat unit if already dead.",
+                "每位将军每战{}次，麾下共享。阵亡时带走击杀者；若已死则带走最近的敌方战斗部队。",
+                REVENGE_USES
+            );
         }
         let b = self.bonuses;
         let mut effects = Vec::new();
@@ -116,6 +119,13 @@ impl World {
             return Bonuses::NONE;
         }
         skill.bonuses
+    }
+
+    pub fn revenge_remaining(&self, side: usize, id: usize) -> u8 {
+        if side >= 2 || !GENERALS.get(id).is_some_and(|g| g.skill.trigger == Trigger::Revenge) {
+            return 0;
+        }
+        REVENGE_USES.saturating_sub(self.revenge_used[side][id])
     }
 
     /// None = unused; Some(0) = spent. Returning or reassigning command never resets this clock.
