@@ -2170,6 +2170,10 @@ impl Game {
                     };
                     self.gfx.text(&state, x, details + 98.0, inner, 28.0, Font::Small, GOLD);
                 }
+            } else if skill.trigger == crate::general_skills::Trigger::Revenge {
+                let remaining = self.world.revenge_remaining(0, i);
+                let state = tf!("道連れ：残り {} / {} 回（1戦・将軍ごと）", "Revenge: {} / {} left this battle", "同归于尽：剩余 {} / {} 次（每战每将军）", remaining, crate::general_skills::REVENGE_USES);
+                self.gfx.text(&state, x, details + 98.0, inner, 28.0, Font::Small, if remaining > 0 { GOLD } else { DIM });
             } else {
                 self.gfx.text(strategy.description(), x, details + 98.0, inner, 28.0, Font::Small, DIM);
             }
